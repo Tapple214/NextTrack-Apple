@@ -10,6 +10,12 @@ const root = ReactDOM.createRoot(
 );
 root.render(
   <React.StrictMode>
+    {/* To enable <i> for bootstrap icons */}
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"
+    />
+
     <App />
   </React.StrictMode>
 );
