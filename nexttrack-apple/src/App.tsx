@@ -19,17 +19,29 @@ function App() {
             style={{ height: "10%", fontSize: "30px" }}
           >
             <i className="bi bi-magic"></i>
+            <i className="bi bi-film"></i>
+            <i className="bi bi-info-circle-fill"></i>
           </div>
           {/* Preview */}
           <div
             className="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ height: "80%" }}
           >
+            {/* Recommendation Form */}
+
+            {/* Video Preview */}
             <iframe
+              src="https://open.spotify.com/embed/track/07WEDHF2YwVgYuBugi2ECO"
+              width="495"
+              height="350"
+              frameBorder="0"
+              allow="encrypted-media"
+            ></iframe>
+            {/* <iframe
               width="495"
               height="350"
               src="https://www.youtube.com/embed/tgbNymZ7vqY?playlist=tgbNymZ7vqY&loop=1"
-            ></iframe>
+            ></iframe> */}
           </div>
         </div>
         {/* Recommendation Results */}
