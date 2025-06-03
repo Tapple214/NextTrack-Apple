@@ -1,6 +1,8 @@
 import React from "react";
 import "./App.css";
 import Item from "./components/item";
+import TrackRecommendationForm from "./components/TrackRecommendationForm";
+import "./components/TrackRecommendationForm.css";
 
 function App() {
   return (
@@ -27,16 +29,7 @@ function App() {
             className="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ height: "80%" }}
           >
-            {/* Recommendation Form */}
-
-            {/* Video Preview */}
-            <iframe
-              src="https://open.spotify.com/embed/track/07WEDHF2YwVgYuBugi2ECO"
-              width="495"
-              height="350"
-              frameBorder="0"
-              allow="encrypted-media"
-            ></iframe>
+            <TrackRecommendationForm />
           </div>
         </div>
         {/* Recommendation Results */}
