@@ -39,6 +39,8 @@ async function getTrackInfo(trackId: string) {
   const response = await fetch(`https://api.spotify.com/v1/tracks/${trackId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
+
+  console.log("track info", token);
   if (!response.ok) {
     throw new Error("Track not found");
   }
@@ -47,6 +49,13 @@ async function getTrackInfo(trackId: string) {
 
 async function getRecommendations(trackId: string) {
   const token = await getSpotifyAccessToken();
+
+  console.log(trackId);
+  console.log(
+    "Full URL:",
+    `https://api.spotify.com/v1/recommendations?seed_tracks=${trackId}&limit=10`
+  );
+
   const response = await fetch(
     `https://api.spotify.com/v1/recommendations?seed_tracks=${trackId}&limit=10`,
     {
@@ -56,6 +65,7 @@ async function getRecommendations(trackId: string) {
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.log(">>", errorText);
     console.error(
       "Spotify recommendation fetch failed:",
       response.status,
@@ -63,7 +73,7 @@ async function getRecommendations(trackId: string) {
     );
     throw new Error("hi Failed to get recommendations");
   }
-  console.log("token here recommendayion", token);
+  console.log("token here recommendation", token);
   return response.json();
 }
 
@@ -97,9 +107,9 @@ const server = http.createServer(async (request, response) => {
         console.log("here my", trackId);
 
         const track = await getTrackInfo(trackId);
-        const recommendations = await getRecommendations(trackId);
-
         console.log("track", track);
+
+        const recommendations = await getRecommendations(trackId);
         console.log("rec", recommendations);
 
         response.writeHead(200, {
@@ -107,7 +117,7 @@ const server = http.createServer(async (request, response) => {
           "Access-Control-Allow-Origin": "*",
         });
 
-        // response.end(JSON.stringify({ track, recommendations }));
+        response.end(JSON.stringify({ track, recommendations }));
       } catch (error: any) {
         response.writeHead(500, {
           "Content-Type": "application/json",

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
+import TrackDisplay from "./components/TrackDisplay";
 import Item from "./components/item";
 
 function App() {
@@ -57,43 +58,54 @@ function App() {
           </div>
           {/* Preview */}
           <div
-            className="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center"
+            className="bg-secondary flex-grow-1 d-flex flex-column justify-content-center align-items-center"
             style={{ height: "80%" }}
           >
             {/* Recommendation Form */}
-            <input
-              type="text"
-              value={trackId}
-              onChange={(e) => setTrackId(e.target.value)}
-            />
+            <div className="d-flex mb-3">
+              <input
+                type="text"
+                className="form-control me-2"
+                placeholder="Enter Spotify Track ID"
+                value={trackId}
+                onChange={(e) => setTrackId(e.target.value)}
+              />
+              <button
+                className="btn btn-primary"
+                onClick={handleRecommendationFormSubmit}
+              >
+                Get Recommendations
+              </button>
+            </div>
 
-            <button onClick={handleRecommendationFormSubmit}>Get Rec</button>
-            {/* Video Preview */}
-            {/* <iframe
-              src="https://open.spotify.com/embed/track/07WEDHF2YwVgYuBugi2ECO"
-              width="495"
-              height="350"
-              frameBorder="0"
-              allow="encrypted-media"
-            ></iframe> */}
-            {/* <iframe
-              width="495"
-              height="350"
-              src="https://www.youtube.com/embed/tgbNymZ7vqY?playlist=tgbNymZ7vqY&loop=1"
-            ></iframe> */}
+            {error && (
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
+            )}
+
+            {/* Spotify Preview */}
+            {result && (
+              <iframe
+                src={`https://open.spotify.com/embed/track/${trackId}`}
+                width="495"
+                height="350"
+                frameBorder="0"
+                allow="encrypted-media"
+              ></iframe>
+            )}
           </div>
         </div>
         {/* Recommendation Results */}
-        <div className="bg-success flex-grow-1" style={{ maxWidth: "50%" }}>
-          {error && <p>{error}</p>}
-
+        <div
+          className="bg-success flex-grow-1"
+          style={{ maxWidth: "50%", overflowY: "auto" }}
+        >
           {result && (
-            <div>
-              <h3>Track Info</h3>
-              <pre>{JSON.stringify(result.track, null, 2)}</pre>
-              <h3>Recs</h3>
-              <pre>{JSON.stringify(result.recommendations, null, 2)}</pre>
-            </div>
+            <TrackDisplay
+              track={result.track}
+              recommendations={result.recommendations}
+            />
           )}
         </div>
       </div>
@@ -106,7 +118,7 @@ function App() {
         >
           <Item title="hello" />
         </div>
-        {/*  Custom Track List */}
+        {/* Custom Track List */}
         <div className="bg-warning flex-grow-1" style={{ maxWidth: "50%" }}>
           5
         </div>
