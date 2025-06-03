@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import SpotifyWebApi from "spotify-web-api-node";
 
 // Initialize Spotify Web API
@@ -14,6 +14,43 @@ const TrackRecommendationForm = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [trackInfo, setTrackInfo] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Authenticate with Spotify
+  useEffect(() => {
+    const authenticate = async () => {
+      try {
+        // Get client credentials
+        const response = await fetch("https://accounts.spotify.com/api/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization:
+              "Basic " +
+              btoa(
+                process.env.REACT_APP_SPOTIFY_CLIENT_ID +
+                  ":" +
+                  process.env.REACT_APP_SPOTIFY_CLIENT_SECRET
+              ),
+          },
+          body: "grant_type=client_credentials",
+        });
+
+        const data = await response.json();
+        if (data.access_token) {
+          spotifyApi.setAccessToken(data.access_token);
+          setIsAuthenticated(true);
+        }
+      } catch (err) {
+        console.error("Authentication error:", err);
+        setError(
+          "Failed to authenticate with Spotify. Please check your credentials."
+        );
+      }
+    };
+
+    authenticate();
+  }, []);
 
   // Get artist genres for a track
   const getArtistGenres = async (artistId) => {
@@ -55,6 +92,11 @@ const TrackRecommendationForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      setError("Please wait while we authenticate with Spotify...");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
@@ -68,10 +110,10 @@ const TrackRecommendationForm = () => {
       const recommendedTracks = await getCustomRecommendations(seedTrack);
       setRecommendations(recommendedTracks);
     } catch (err) {
+      console.error("Error:", err);
       setError(
         "Error fetching recommendations. Please check your track ID and try again."
       );
-      console.error("Error:", err);
     } finally {
       setLoading(false);
     }
@@ -80,6 +122,9 @@ const TrackRecommendationForm = () => {
   return (
     <div className="track-recommendation-form">
       <h2>Get Track Recommendations</h2>
+      {!isAuthenticated && (
+        <div className="loading-message">Connecting to Spotify...</div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="trackId">Spotify Track ID:</label>
@@ -90,9 +135,10 @@ const TrackRecommendationForm = () => {
             onChange={(e) => setTrackId(e.target.value)}
             placeholder="Enter Spotify Track ID"
             required
+            disabled={!isAuthenticated}
           />
         </div>
-        <button type="submit" disabled={loading}>
+        <button type="submit" disabled={loading || !isAuthenticated}>
           {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
