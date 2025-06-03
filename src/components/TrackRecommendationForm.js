@@ -8,9 +8,8 @@ const spotifyApi = new SpotifyWebApi({
   redirectUri: process.env.REACT_APP_SPOTIFY_REDIRECT_URI,
 });
 
-const TrackRecommendationForm = () => {
+const TrackRecommendationForm = ({ onRecommendations }) => {
   const [spotifyUrl, setSpotifyUrl] = useState("");
-  const [recommendations, setRecommendations] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [trackInfo, setTrackInfo] = useState(null);
@@ -169,7 +168,6 @@ const TrackRecommendationForm = () => {
 
     setLoading(true);
     setError(null);
-    setRecommendations([]);
     setTrackInfo(null);
 
     try {
@@ -183,7 +181,7 @@ const TrackRecommendationForm = () => {
 
       // Get custom recommendations
       const recommendedTracks = await getCustomRecommendations(seedTrack);
-      setRecommendations(recommendedTracks);
+      onRecommendations(recommendedTracks, seedTrack);
     } catch (err) {
       console.error("Error:", err);
       setError(
@@ -227,36 +225,6 @@ const TrackRecommendationForm = () => {
             <strong>{trackInfo.name}</strong> by{" "}
             {trackInfo.artists.map((artist) => artist.name).join(", ")}
           </div>
-        </div>
-      )}
-
-      {recommendations.length > 0 && (
-        <div className="recommendations">
-          <h3>Similar Tracks:</h3>
-          <ul>
-            {recommendations.map((track) => (
-              <li key={track.id} className="recommendation-item">
-                <div className="track-name">
-                  <strong>{track.name}</strong> -{" "}
-                  {track.artists.map((artist) => artist.name).join(", ")}
-                </div>
-                {track.preview_url && (
-                  <audio controls className="preview-player">
-                    <source src={track.preview_url} type="audio/mpeg" />
-                    Your browser does not support the audio element.
-                  </audio>
-                )}
-                <a
-                  href={track.external_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="spotify-link"
-                >
-                  Open in Spotify
-                </a>
-              </li>
-            ))}
-          </ul>
         </div>
       )}
     </div>

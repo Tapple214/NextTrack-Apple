@@ -44,7 +44,7 @@ function App() {
         </div>
         {/* Recommendation Results */}
         <div
-          className="flex-grow-1 p-3 overflow-auto"
+          className="similar-tracks flex-grow-1 p-3 overflow-auto bg-primary"
           style={{
             maxWidth: "50%",
             backgroundColor: "#f8f9fa",
@@ -52,48 +52,45 @@ function App() {
           }}
         >
           {trackInfo && (
-            <div className="mb-4">
-              <h3 className="text-primary mb-3">Seed Track</h3>
-              <div className="card">
-                <div className="card-body">
-                  <h5 className="card-title">{trackInfo.name}</h5>
-                  <p className="card-text">
-                    {trackInfo.artists.map((artist) => artist.name).join(", ")}
-                  </p>
-                </div>
+            <div className="track-info mb-4">
+              <h3>Seed Track:</h3>
+              <div className="track-details">
+                <strong>{trackInfo.name}</strong> by{" "}
+                {trackInfo.artists.map((artist) => artist.name).join(", ")}
               </div>
             </div>
           )}
 
           {recommendations.length > 0 && (
-            <div>
-              <h3 className="text-primary mb-3">Recommended Tracks</h3>
-              <div className="recommendations-list">
+            <div className="recommendations">
+              <h3>Similar Tracks:</h3>
+              <ul className="list-unstyled">
                 {recommendations.map((track) => (
-                  <div key={track.id} className="card mb-3">
-                    <div className="card-body">
-                      <h5 className="card-title">{track.name}</h5>
-                      <p className="card-text">
-                        {track.artists.map((artist) => artist.name).join(", ")}
-                      </p>
-                      {track.preview_url && (
-                        <audio controls className="w-100 mb-2">
-                          <source src={track.preview_url} type="audio/mpeg" />
-                          Your browser does not support the audio element.
-                        </audio>
-                      )}
-                      <a
-                        href={track.external_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn btn-outline-primary btn-sm"
-                      >
-                        Open in Spotify
-                      </a>
+                  <li
+                    key={track.id}
+                    className="recommendation-item mb-3 p-2 border rounded"
+                  >
+                    <div className="track-name">
+                      <strong>{track.name}</strong> -{" "}
+                      {track.artists.map((artist) => artist.name).join(", ")}
                     </div>
-                  </div>
+                    {track.preview_url && (
+                      <audio controls className="preview-player w-100 mt-2">
+                        <source src={track.preview_url} type="audio/mpeg" />
+                        Your browser does not support the audio element.
+                      </audio>
+                    )}
+                    <a
+                      href={track.external_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="spotify-link btn btn-primary btn-sm mt-2"
+                    >
+                      Open in Spotify
+                    </a>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
           )}
         </div>
