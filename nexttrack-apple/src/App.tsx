@@ -1,5 +1,6 @@
 import React from "react";
 import "./App.css";
+import Item from "./components/item";
 
 function App() {
   return (
@@ -25,7 +26,7 @@ function App() {
             style={{ height: "80%" }}
           >
             <iframe
-              width="500"
+              width="495"
               height="350"
               src="https://www.youtube.com/embed/tgbNymZ7vqY?playlist=tgbNymZ7vqY&loop=1"
             ></iframe>
@@ -39,14 +40,16 @@ function App() {
 
       <div className="d-flex col-6" style={{ height: "50%", width: "100vw" }}>
         {/* Ready-made Track List */}
-        <div className="bg-danger flex-grow-1" style={{ maxWidth: "50%" }}>
-          4
+        <div
+          className="bg-danger flex-grow-1 px-3 pt-3"
+          style={{ maxWidth: "50%" }}
+        >
+          <Item title="hello" />
         </div>
         {/*  Custom Track List */}
-        <div
-          className="bg-warning flex-grow-1"
-          style={{ maxWidth: "50%" }}
-        ></div>
+        <div className="bg-warning flex-grow-1" style={{ maxWidth: "50%" }}>
+          5
+        </div>
       </div>
     </div>
   );
