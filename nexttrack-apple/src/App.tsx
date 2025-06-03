@@ -1,8 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import Item from "./components/item";
 
 function App() {
+  const [trackId, setTrackId] = useState("");
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState("");
+
+  const handleRecommendationFormSubmit = async () => {
+    setError("");
+    setResult(null);
+
+    if (!trackId) {
+      setError("Please enter a track ID");
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:4000/recommend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ trackId }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Something went wrong.");
+      } else {
+        setResult(data);
+      }
+    } catch (error: any) {
+      setError(error.message || "Network error");
+    }
+  };
+
   return (
     <div
       className="d-flex flex-column"
@@ -28,15 +61,21 @@ function App() {
             style={{ height: "80%" }}
           >
             {/* Recommendation Form */}
+            <input
+              type="text"
+              value={trackId}
+              onChange={(e) => setTrackId(e.target.value)}
+            />
 
+            <button onClick={handleRecommendationFormSubmit}>Get Rec</button>
             {/* Video Preview */}
-            <iframe
+            {/* <iframe
               src="https://open.spotify.com/embed/track/07WEDHF2YwVgYuBugi2ECO"
               width="495"
               height="350"
               frameBorder="0"
               allow="encrypted-media"
-            ></iframe>
+            ></iframe> */}
             {/* <iframe
               width="495"
               height="350"
@@ -46,7 +85,16 @@ function App() {
         </div>
         {/* Recommendation Results */}
         <div className="bg-success flex-grow-1" style={{ maxWidth: "50%" }}>
-          3
+          {error && <p>{error}</p>}
+
+          {result && (
+            <div>
+              <h3>Track Info</h3>
+              <pre>{JSON.stringify(result.track, null, 2)}</pre>
+              <h3>Recs</h3>
+              <pre>{JSON.stringify(result.recommendations, null, 2)}</pre>
+            </div>
+          )}
         </div>
       </div>
 
