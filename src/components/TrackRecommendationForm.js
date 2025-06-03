@@ -74,36 +74,86 @@ const TrackRecommendationForm = () => {
     }
   };
 
-  // Custom recommendation function
+  // Get audio features for a track
+  const getAudioFeatures = async (trackId) => {
+    try {
+      const response = await spotifyApi.getAudioFeaturesForTrack(trackId);
+      return response.body;
+    } catch (err) {
+      console.error("Error fetching audio features:", err);
+      return null;
+    }
+  };
+
+  // Custom recommendation function with multiple fallback methods
   const getCustomRecommendations = async (seedTrack) => {
     try {
-      // Get genres of the seed track's artist
+      let recommendedTracks = [];
+
+      // Method 1: Try to get recommendations based on artist genres
       const seedGenres = await getArtistGenres(seedTrack.artists[0].id);
 
-      if (!seedGenres || seedGenres.length === 0) {
-        throw new Error("Could not find genres for this track");
+      if (seedGenres && seedGenres.length > 0) {
+        // Search for tracks in the same genre
+        const genreQuery = seedGenres[0];
+        const response = await spotifyApi.searchTracks(`genre:${genreQuery}`, {
+          limit: 50,
+          market: "US",
+        });
+
+        recommendedTracks = response.body.tracks.items;
       }
 
-      // Search for tracks in the same genre
-      const genreQuery = seedGenres[0];
-      const response = await spotifyApi.searchTracks(`genre:${genreQuery}`, {
-        limit: 50,
-        market: "US",
-      });
+      // Method 2: If no genres or not enough tracks, search by artist
+      if (recommendedTracks.length < 5) {
+        const artistName = seedTrack.artists[0].name;
+        const response = await spotifyApi.searchTracks(
+          `artist:"${artistName}"`,
+          {
+            limit: 50,
+            market: "US",
+          }
+        );
 
-      const tracks = response.body.tracks.items;
+        recommendedTracks = [
+          ...recommendedTracks,
+          ...response.body.tracks.items,
+        ];
+      }
 
-      // Filter out the seed track and get recommendations
-      const recommendations = tracks
-        .filter((track) => track.id !== seedTrack.id)
-        .slice(0, 5)
+      // Method 3: If still not enough tracks, use track name
+      if (recommendedTracks.length < 5) {
+        const trackName = seedTrack.name;
+        const response = await spotifyApi.searchTracks(`track:"${trackName}"`, {
+          limit: 50,
+          market: "US",
+        });
+
+        recommendedTracks = [
+          ...recommendedTracks,
+          ...response.body.tracks.items,
+        ];
+      }
+
+      // Process and filter recommendations
+      const processedTracks = recommendedTracks
+        .filter((track) => track.id !== seedTrack.id) // Remove the seed track
+        .filter(
+          (track, index, self) =>
+            index === self.findIndex((t) => t.id === track.id) // Remove duplicates
+        )
+        .slice(0, 5) // Get top 5 recommendations
         .map((track) => ({
           ...track,
           preview_url: track.preview_url,
           external_url: track.external_urls.spotify,
         }));
 
-      return recommendations;
+      if (processedTracks.length === 0) {
+        throw new Error("Could not find any similar tracks");
+      }
+
+      return processedTracks;
     } catch (err) {
       console.error("Error in custom recommendations:", err);
       throw err;
