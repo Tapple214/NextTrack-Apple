@@ -9,7 +9,7 @@ const spotifyApi = new SpotifyWebApi({
 });
 
 const TrackRecommendationForm = () => {
-  const [trackId, setTrackId] = useState("");
+  const [spotifyUrl, setSpotifyUrl] = useState("");
   const [recommendations, setRecommendations] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -20,7 +20,6 @@ const TrackRecommendationForm = () => {
   useEffect(() => {
     const authenticate = async () => {
       try {
-        // Get client credentials
         const response = await fetch("https://accounts.spotify.com/api/token", {
           method: "POST",
           headers: {
@@ -52,6 +51,18 @@ const TrackRecommendationForm = () => {
     authenticate();
   }, []);
 
+  // Extract track ID from Spotify URL
+  const extractTrackId = (url) => {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+      const trackId = pathParts[pathParts.length - 1];
+      return trackId;
+    } catch (err) {
+      throw new Error("Invalid Spotify URL format");
+    }
+  };
+
   // Get artist genres for a track
   const getArtistGenres = async (artistId) => {
     try {
@@ -69,10 +80,14 @@ const TrackRecommendationForm = () => {
       // Get genres of the seed track's artist
       const seedGenres = await getArtistGenres(seedTrack.artists[0].id);
 
+      if (!seedGenres || seedGenres.length === 0) {
+        throw new Error("Could not find genres for this track");
+      }
+
       // Search for tracks in the same genre
-      const genreQuery = seedGenres[0] || "pop"; // Use first genre or default to pop
+      const genreQuery = seedGenres[0];
       const response = await spotifyApi.searchTracks(`genre:${genreQuery}`, {
-        limit: 20,
+        limit: 50,
         market: "US",
       });
 
@@ -80,8 +95,13 @@ const TrackRecommendationForm = () => {
 
       // Filter out the seed track and get recommendations
       const recommendations = tracks
-        .filter((track) => track.id !== trackId) // Remove the seed track
-        .slice(0, 5); // Get top 5 recommendations
+        .filter((track) => track.id !== seedTrack.id)
+        .slice(0, 5)
+        .map((track) => ({
+          ...track,
+          preview_url: track.preview_url,
+          external_url: track.external_urls.spotify,
+        }));
 
       return recommendations;
     } catch (err) {
@@ -99,8 +119,13 @@ const TrackRecommendationForm = () => {
 
     setLoading(true);
     setError(null);
+    setRecommendations([]);
+    setTrackInfo(null);
 
     try {
+      // Extract track ID from URL
+      const trackId = extractTrackId(spotifyUrl);
+
       // Get the seed track's information
       const trackResponse = await spotifyApi.getTrack(trackId);
       const seedTrack = trackResponse.body;
@@ -112,7 +137,7 @@ const TrackRecommendationForm = () => {
     } catch (err) {
       console.error("Error:", err);
       setError(
-        "Error fetching recommendations. Please check your track ID and try again."
+        "Error fetching recommendations. Please check your Spotify URL and try again."
       );
     } finally {
       setLoading(false);
@@ -127,13 +152,13 @@ const TrackRecommendationForm = () => {
       )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
-          <label htmlFor="trackId">Spotify Track ID:</label>
+          <label htmlFor="spotifyUrl">Spotify Track URL:</label>
           <input
             type="text"
-            id="trackId"
-            value={trackId}
-            onChange={(e) => setTrackId(e.target.value)}
-            placeholder="Enter Spotify Track ID"
+            id="spotifyUrl"
+            value={spotifyUrl}
+            onChange={(e) => setSpotifyUrl(e.target.value)}
+            placeholder="Paste a Spotify track URL (e.g., https://open.spotify.com/track/...)"
             required
             disabled={!isAuthenticated}
           />
@@ -160,9 +185,25 @@ const TrackRecommendationForm = () => {
           <h3>Similar Tracks:</h3>
           <ul>
             {recommendations.map((track) => (
-              <li key={track.id}>
-                <strong>{track.name}</strong> -{" "}
-                {track.artists.map((artist) => artist.name).join(", ")}
+              <li key={track.id} className="recommendation-item">
+                <div className="track-name">
+                  <strong>{track.name}</strong> -{" "}
+                  {track.artists.map((artist) => artist.name).join(", ")}
+                </div>
+                {track.preview_url && (
+                  <audio controls className="preview-player">
+                    <source src={track.preview_url} type="audio/mpeg" />
+                    Your browser does not support the audio element.
+                  </audio>
+                )}
+                <a
+                  href={track.external_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="spotify-link"
+                >
+                  Open in Spotify
+                </a>
               </li>
             ))}
           </ul>
