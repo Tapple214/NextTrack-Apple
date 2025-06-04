@@ -9,6 +9,9 @@ function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [trackInfo, setTrackInfo] = useState(null);
   const [sampleTracks, setSampleTracks] = useState([]);
+  const [currentTrackId, setCurrentTrackId] = useState(
+    "07WEDHF2YwVgYuBugi2ECO"
+  );
 
   useEffect(() => {
     const loadSampleTracks = async () => {
@@ -22,6 +25,10 @@ function App() {
   const handleRecommendations = (newRecommendations, newTrackInfo) => {
     setRecommendations(newRecommendations);
     setTrackInfo(newTrackInfo);
+  };
+
+  const handlePlayTrack = (trackId) => {
+    setCurrentTrackId(trackId);
   };
 
   return (
@@ -50,7 +57,7 @@ function App() {
             style={{ height: "80%" }}
           >
             <iframe
-              src="https://open.spotify.com/embed/track/07WEDHF2YwVgYuBugi2ECO"
+              src={`https://open.spotify.com/embed/track/${currentTrackId}`}
               width="100%"
               height="380"
               frameBorder="0"
@@ -127,6 +134,7 @@ function App() {
             <Item
               key={track.id}
               title={`https://open.spotify.com/track/${track.id}`}
+              onPlayTrack={handlePlayTrack}
             />
           ))}
         </div>
