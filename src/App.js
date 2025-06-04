@@ -118,6 +118,7 @@ function App() {
                     displayTitle={`${track.name} - ${track.artists
                       .map((artist) => artist.name)
                       .join(", ")}`}
+                    metrics={track}
                   />
                 ))}
               </div>
@@ -139,6 +140,7 @@ function App() {
               title={`https://open.spotify.com/track/${track.id}`}
               onPlayTrack={handlePlayTrack}
               displayTitle={`${track.name} - ${track.artist}`}
+              metrics={track}
             />
           ))}
         </div>

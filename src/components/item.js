@@ -1,6 +1,7 @@
 import React from "react";
+import "./item.css";
 
-function Item({ title, onPlayTrack, displayTitle }) {
+function Item({ title, onPlayTrack, displayTitle, metrics }) {
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(title)
@@ -19,6 +20,10 @@ function Item({ title, onPlayTrack, displayTitle }) {
     if (onPlayTrack) {
       onPlayTrack(trackId);
     }
+  };
+
+  const formatMetric = (value) => {
+    return (value * 100).toFixed(1) + "%";
   };
 
   return (
@@ -40,9 +45,56 @@ function Item({ title, onPlayTrack, displayTitle }) {
           >
             <i className="bi bi-play-fill"></i>
           </button>
-          <button className="btn btn-link p-0" title="Track information">
-            <i className="bi bi-info-circle-fill"></i>
-          </button>
+          {metrics && (
+            <div className="position-relative">
+              <button
+                className="btn btn-link p-0"
+                title="Track characteristics"
+              >
+                <i className="bi bi-info-circle-fill"></i>
+              </button>
+              <div className="track-metrics-popover">
+                <div className="metrics-grid">
+                  <div className="metric">
+                    <span className="metric-label">Danceability:</span>
+                    <span className="metric-value">
+                      {formatMetric(metrics.danceability)}
+                    </span>
+                  </div>
+                  <div className="metric">
+                    <span className="metric-label">Energy:</span>
+                    <span className="metric-value">
+                      {formatMetric(metrics.energy)}
+                    </span>
+                  </div>
+                  <div className="metric">
+                    <span className="metric-label">Acousticness:</span>
+                    <span className="metric-value">
+                      {formatMetric(metrics.acousticness)}
+                    </span>
+                  </div>
+                  <div className="metric">
+                    <span className="metric-label">Instrumentalness:</span>
+                    <span className="metric-value">
+                      {formatMetric(metrics.instrumentalness)}
+                    </span>
+                  </div>
+                  <div className="metric">
+                    <span className="metric-label">Liveness:</span>
+                    <span className="metric-value">
+                      {formatMetric(metrics.liveness)}
+                    </span>
+                  </div>
+                  <div className="metric">
+                    <span className="metric-label">Valence:</span>
+                    <span className="metric-value">
+                      {formatMetric(metrics.valence)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
