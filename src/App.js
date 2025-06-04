@@ -12,6 +12,7 @@ function App() {
   const [currentTrackId, setCurrentTrackId] = useState(
     "07WEDHF2YwVgYuBugi2ECO"
   );
+  const [activeView, setActiveView] = useState("form"); // 'form' or 'player'
 
   useEffect(() => {
     const loadSampleTracks = async () => {
@@ -29,6 +30,7 @@ function App() {
 
   const handlePlayTrack = (trackId) => {
     setCurrentTrackId(trackId);
+    setActiveView("player"); // Switch to player view when a track is played
   };
 
   return (
@@ -46,27 +48,43 @@ function App() {
             className="bg-primary flex-grow-1 d-flex justify-content-around align-items-center"
             style={{ height: "10%", fontSize: "30px" }}
           >
-            <i className="bi bi-magic"></i>
-            <i className="bi bi-film"></i>
-            <i className="bi bi-info-circle-fill"></i>
+            <button
+              className="btn btn-link text-white"
+              onClick={() => setActiveView("form")}
+              title="Get Recommendations"
+            >
+              <i className="bi bi-magic"></i>
+            </button>
+            <button
+              className="btn btn-link text-white"
+              onClick={() => setActiveView("player")}
+              title="Play Track"
+            >
+              <i className="bi bi-film"></i>
+            </button>
+            <button className="btn btn-link text-white" title="Information">
+              <i className="bi bi-info-circle-fill"></i>
+            </button>
           </div>
           {/* Preview */}
-
           <div
             className="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ height: "80%" }}
           >
-            <iframe
-              src={`https://open.spotify.com/embed/track/${currentTrackId}`}
-              width="100%"
-              height="380"
-              frameBorder="0"
-              allowtransparency="true"
-              allow="encrypted-media"
-            ></iframe>
-            <TrackRecommendationForm
-              onRecommendations={handleRecommendations}
-            />
+            {activeView === "player" ? (
+              <iframe
+                src={`https://open.spotify.com/embed/track/${currentTrackId}`}
+                width="100%"
+                height="380"
+                frameBorder="0"
+                allowtransparency="true"
+                allow="encrypted-media"
+              ></iframe>
+            ) : (
+              <TrackRecommendationForm
+                onRecommendations={handleRecommendations}
+              />
+            )}
           </div>
         </div>
         {/* Recommendation Results */}
