@@ -39,7 +39,24 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
 
       if (!seedTrack) {
         setError(
-          "Track not found in our dataset. Please try a different track URL."
+          <div>
+            <p>Track not found in our dataset. This could be because:</p>
+            <ul>
+              <li>Our dataset is from 2020 and doesn't include newer tracks</li>
+              <li>
+                The track ID format has changed since our dataset was created
+              </li>
+              <li>The track is not available in our region</li>
+            </ul>
+            <p>
+              Please try one of our sample tracks from the list below, or try a
+              different track URL.
+            </p>
+            <p>
+              Note: Our dataset contains tracks from before 2020, so newer
+              tracks won't be found.
+            </p>
+          </div>
         );
         setTrackInfo(null);
         return;
@@ -53,9 +70,22 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
       onRecommendations(recommendedTracks, seedTrack);
     } catch (err) {
       console.error("Error:", err);
-      setError(
-        "Error fetching recommendations. Please check your Spotify URL and try again."
-      );
+      if (err.message === "Invalid Spotify URL format") {
+        setError(
+          <div>
+            <p>Invalid Spotify URL format. Please make sure:</p>
+            <ul>
+              <li>The URL starts with "https://open.spotify.com/track/"</li>
+              <li>The URL is complete and not truncated</li>
+              <li>You've copied the entire URL from Spotify</li>
+            </ul>
+          </div>
+        );
+      } else {
+        setError(
+          "Error fetching recommendations. Please check your Spotify URL and try again."
+        );
+      }
       setTrackInfo(null);
     } finally {
       setLoading(false);
@@ -86,7 +116,21 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
         </button>
       </form>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div
+          className="error-message"
+          style={{
+            marginTop: "1rem",
+            padding: "1rem",
+            backgroundColor: "#fff3f3",
+            border: "1px solid #ffcdd2",
+            borderRadius: "4px",
+            color: "#d32f2f",
+          }}
+        >
+          {error}
+        </div>
+      )}
 
       {trackInfo && (
         <div className="track-info">

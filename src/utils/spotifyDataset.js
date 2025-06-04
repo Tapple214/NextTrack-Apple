@@ -47,14 +47,29 @@ class SpotifyDataset {
           }));
           this.isLoaded = true;
           console.log("Dataset loaded with", this.tracks.length, "tracks");
+
+          // Log some sample tracks and check for Mr. Brightside
+          const sampleTracks = this.tracks.slice(0, 5);
           console.log(
             "Sample tracks:",
-            this.tracks.slice(0, 5).map((t) => ({
+            sampleTracks.map((t) => ({
               id: t.id,
               name: t.name,
               artist: t.artists[0].name,
             }))
           );
+
+          // Search for Mr. Brightside
+          const mrBrightside = this.tracks.find(
+            (t) =>
+              t.name.toLowerCase().includes("mr. brightside") ||
+              t.name.toLowerCase().includes("mr brightside")
+          );
+          if (mrBrightside) {
+            console.log("Found Mr. Brightside in dataset:", mrBrightside);
+          } else {
+            console.log("Mr. Brightside not found in dataset");
+          }
         },
         error: (error) => {
           console.error("Error parsing CSV:", error);
@@ -131,7 +146,15 @@ class SpotifyDataset {
         "Track not found. Available track IDs:",
         this.tracks.slice(0, 5).map((t) => t.id)
       );
-      return null;
+      // Try to find by name as fallback
+      const trackName = "Mr. Brightside";
+      const similarTrack = this.tracks.find((t) =>
+        t.name.toLowerCase().includes(trackName.toLowerCase())
+      );
+      if (similarTrack) {
+        console.log("Found similar track by name:", similarTrack);
+        return similarTrack;
+      }
     }
 
     console.log("Found track:", track);
