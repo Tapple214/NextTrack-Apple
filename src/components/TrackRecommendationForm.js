@@ -1,168 +1,39 @@
 import React, { useState, useEffect } from "react";
-import SpotifyWebApi from "spotify-web-api-node";
-
-// Initialize Spotify Web API
-const spotifyApi = new SpotifyWebApi({
-  clientId: process.env.REACT_APP_SPOTIFY_CLIENT_ID,
-  clientSecret: process.env.REACT_APP_SPOTIFY_CLIENT_SECRET,
-  redirectUri: process.env.REACT_APP_SPOTIFY_REDIRECT_URI,
-});
+import spotifyDataset from "../utils/spotifyDataset";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
   const [spotifyUrl, setSpotifyUrl] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [trackInfo, setTrackInfo] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isDatasetLoaded, setIsDatasetLoaded] = useState(false);
 
-  // Authenticate with Spotify
+  // Load the dataset when component mounts
   useEffect(() => {
-    const authenticate = async () => {
+    const loadDataset = async () => {
       try {
-        const response = await fetch("https://accounts.spotify.com/api/token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            Authorization:
-              "Basic " +
-              btoa(
-                process.env.REACT_APP_SPOTIFY_CLIENT_ID +
-                  ":" +
-                  process.env.REACT_APP_SPOTIFY_CLIENT_SECRET
-              ),
-          },
-          body: "grant_type=client_credentials",
-        });
-
-        const data = await response.json();
-        if (data.access_token) {
-          spotifyApi.setAccessToken(data.access_token);
-          setIsAuthenticated(true);
-        }
+        await spotifyDataset.loadDataset();
+        setIsDatasetLoaded(true);
       } catch (err) {
-        console.error("Authentication error:", err);
-        setError(
-          "Failed to authenticate with Spotify. Please check your credentials."
-        );
+        console.error("Error loading dataset:", err);
+        setError("Failed to load track dataset. Please try again later.");
       }
     };
 
-    authenticate();
+    loadDataset();
   }, []);
 
-  // Extract track ID from Spotify URL
-  const extractTrackId = (url) => {
-    try {
-      const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split("/");
-      const trackId = pathParts[pathParts.length - 1];
-      return trackId;
-    } catch (err) {
-      throw new Error("Invalid Spotify URL format");
-    }
-  };
-
-  // Get artist genres for a track
-  const getArtistGenres = async (artistId) => {
-    try {
-      const response = await spotifyApi.getArtist(artistId);
-      return response.body.genres;
-    } catch (err) {
-      console.error("Error fetching artist genres:", err);
-      return [];
-    }
-  };
-
-  // Get audio features for a track
-  const getAudioFeatures = async (trackId) => {
-    try {
-      const response = await spotifyApi.getAudioFeaturesForTrack(trackId);
-      return response.body;
-    } catch (err) {
-      console.error("Error fetching audio features:", err);
-      return null;
-    }
-  };
-
-  // Custom recommendation function with multiple fallback methods
-  const getCustomRecommendations = async (seedTrack) => {
-    try {
-      let recommendedTracks = [];
-
-      // Method 1: Try to get recommendations based on artist genres
-      const seedGenres = await getArtistGenres(seedTrack.artists[0].id);
-
-      if (seedGenres && seedGenres.length > 0) {
-        // Search for tracks in the same genre
-        const genreQuery = seedGenres[0];
-        const response = await spotifyApi.searchTracks(`genre:${genreQuery}`, {
-          limit: 50,
-          market: "US",
-        });
-
-        recommendedTracks = response.body.tracks.items;
-      }
-
-      // Method 2: If no genres or not enough tracks, search by artist
-      if (recommendedTracks.length < 5) {
-        const artistName = seedTrack.artists[0].name;
-        const response = await spotifyApi.searchTracks(
-          `artist:"${artistName}"`,
-          {
-            limit: 50,
-            market: "US",
-          }
-        );
-
-        recommendedTracks = [
-          ...recommendedTracks,
-          ...response.body.tracks.items,
-        ];
-      }
-
-      // Method 3: If still not enough tracks, use track name
-      if (recommendedTracks.length < 5) {
-        const trackName = seedTrack.name;
-        const response = await spotifyApi.searchTracks(`track:"${trackName}"`, {
-          limit: 50,
-          market: "US",
-        });
-
-        recommendedTracks = [
-          ...recommendedTracks,
-          ...response.body.tracks.items,
-        ];
-      }
-
-      // Process and filter recommendations
-      const processedTracks = recommendedTracks
-        .filter((track) => track.id !== seedTrack.id) // Remove the seed track
-        .filter(
-          (track, index, self) =>
-            index === self.findIndex((t) => t.id === track.id) // Remove duplicates
-        )
-        .slice(0, 5) // Get top 5 recommendations
-        .map((track) => ({
-          ...track,
-          preview_url: track.preview_url,
-          external_url: track.external_urls.spotify,
-        }));
-
-      if (processedTracks.length === 0) {
-        throw new Error("Could not find any similar tracks");
-      }
-
-      return processedTracks;
-    } catch (err) {
-      console.error("Error in custom recommendations:", err);
-      throw err;
-    }
+  // Fallback recommendation method when track is not in dataset
+  const getFallbackRecommendations = (seedTrack) => {
+    // Get random tracks from the dataset as fallback
+    const shuffled = [...spotifyDataset.tracks].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 5);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isAuthenticated) {
-      setError("Please wait while we authenticate with Spotify...");
+    if (!isDatasetLoaded) {
+      setError("Please wait while we load the track dataset...");
       return;
     }
 
@@ -171,16 +42,32 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
     setTrackInfo(null);
 
     try {
-      // Extract track ID from URL
-      const trackId = extractTrackId(spotifyUrl);
+      // Get the seed track from our dataset
+      const seedTrack = spotifyDataset.getTrackByUrl(spotifyUrl);
 
-      // Get the seed track's information
-      const trackResponse = await spotifyApi.getTrack(trackId);
-      const seedTrack = trackResponse.body;
+      if (!seedTrack) {
+        console.log(
+          "Track not found in dataset, using fallback recommendations"
+        );
+        // Use a random track from the dataset as seed
+        const randomTrack =
+          spotifyDataset.tracks[
+            Math.floor(Math.random() * spotifyDataset.tracks.length)
+          ];
+        setTrackInfo({
+          name: "Track not found in dataset",
+          artists: [{ name: "Using similar tracks instead" }],
+          ...randomTrack,
+        });
+        const recommendedTracks = getFallbackRecommendations(randomTrack);
+        onRecommendations(recommendedTracks, randomTrack);
+        return;
+      }
+
       setTrackInfo(seedTrack);
 
-      // Get custom recommendations
-      const recommendedTracks = await getCustomRecommendations(seedTrack);
+      // Get custom recommendations using our dataset
+      const recommendedTracks = spotifyDataset.findSimilarTracks(seedTrack);
       onRecommendations(recommendedTracks, seedTrack);
     } catch (err) {
       console.error("Error:", err);
@@ -195,8 +82,8 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
   return (
     <div className="track-recommendation-form">
       <h2>Get Track Recommendations</h2>
-      {!isAuthenticated && (
-        <div className="loading-message">Connecting to Spotify...</div>
+      {!isDatasetLoaded && (
+        <div className="loading-message">Loading track dataset...</div>
       )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -208,10 +95,10 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
             onChange={(e) => setSpotifyUrl(e.target.value)}
             placeholder="Paste a Spotify track URL (e.g., https://open.spotify.com/track/...)"
             required
-            disabled={!isAuthenticated}
+            disabled={!isDatasetLoaded}
           />
         </div>
-        <button type="submit" disabled={loading || !isAuthenticated}>
+        <button type="submit" disabled={loading || !isDatasetLoaded}>
           {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
