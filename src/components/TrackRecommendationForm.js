@@ -23,13 +23,6 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
     loadDataset();
   }, []);
 
-  // Fallback recommendation method when track is not in dataset
-  const getFallbackRecommendations = (seedTrack) => {
-    // Get random tracks from the dataset as fallback
-    const shuffled = [...spotifyDataset.tracks].sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, 5);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isDatasetLoaded) {
@@ -39,31 +32,20 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
 
     setLoading(true);
     setError(null);
-    setTrackInfo(null);
 
     try {
       // Get the seed track from our dataset
       const seedTrack = spotifyDataset.getTrackByUrl(spotifyUrl);
 
       if (!seedTrack) {
-        console.log(
-          "Track not found in dataset, using fallback recommendations"
+        setError(
+          "Track not found in our dataset. Please try a different track URL."
         );
-        // Use a random track from the dataset as seed
-        const randomTrack =
-          spotifyDataset.tracks[
-            Math.floor(Math.random() * spotifyDataset.tracks.length)
-          ];
-        setTrackInfo({
-          name: "Track not found in dataset",
-          artists: [{ name: "Using similar tracks instead" }],
-          ...randomTrack,
-        });
-        const recommendedTracks = getFallbackRecommendations(randomTrack);
-        onRecommendations(recommendedTracks, randomTrack);
+        setTrackInfo(null);
         return;
       }
 
+      // Only update track info if we found a valid track
       setTrackInfo(seedTrack);
 
       // Get custom recommendations using our dataset
@@ -74,6 +56,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
       setError(
         "Error fetching recommendations. Please check your Spotify URL and try again."
       );
+      setTrackInfo(null);
     } finally {
       setLoading(false);
     }

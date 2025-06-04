@@ -89,7 +89,12 @@ class SpotifyDataset {
       throw new Error("Dataset not loaded");
     }
 
-    const similarities = this.tracks.map((track) => ({
+    // Filter out the seed track from recommendations
+    const otherTracks = this.tracks.filter(
+      (track) => track.id !== seedTrack.id
+    );
+
+    const similarities = otherTracks.map((track) => ({
       track,
       similarity: this.calculateSimilarity(seedTrack, track),
     }));
@@ -110,18 +115,19 @@ class SpotifyDataset {
       return null;
     }
 
-    console.log(
-      "First few track IDs in dataset:",
-      this.tracks.slice(0, 3).map((t) => t.id)
-    );
+    // Log the first few tracks for debugging
+    console.log("First few tracks in dataset:", this.tracks.slice(0, 3));
 
     const track = this.tracks.find((track) => track.id === trackId);
     if (!track) {
       console.log(
-        "Track not found. Available columns:",
-        Object.keys(this.tracks[0])
+        "Track not found. Available track IDs:",
+        this.tracks.slice(0, 5).map((t) => t.id)
       );
+      return null;
     }
+
+    console.log("Found track:", track);
     return track;
   }
 
@@ -130,7 +136,9 @@ class SpotifyDataset {
     try {
       const urlObj = new URL(url);
       const pathParts = urlObj.pathname.split("/");
-      return pathParts[pathParts.length - 1];
+      const trackId = pathParts[pathParts.length - 1];
+      console.log("Extracted track ID:", trackId);
+      return trackId;
     } catch (err) {
       throw new Error("Invalid Spotify URL format");
     }
