@@ -109,33 +109,18 @@ function App() {
           {recommendations.length > 0 && (
             <div className="recommendations">
               <h3>Similar Tracks:</h3>
-              <ul className="list-unstyled">
+              <div className="recommendation-list">
                 {recommendations.map((track) => (
-                  <li
+                  <Item
                     key={track.id}
-                    className="recommendation-item mb-3 p-2 border rounded"
-                  >
-                    <div className="track-name">
-                      <strong>{track.name}</strong> -{" "}
-                      {track.artists.map((artist) => artist.name).join(", ")}
-                    </div>
-                    {track.preview_url && (
-                      <audio controls className="preview-player w-100 mt-2">
-                        <source src={track.preview_url} type="audio/mpeg" />
-                        Your browser does not support the audio element.
-                      </audio>
-                    )}
-                    <a
-                      href={track.external_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="spotify-link btn btn-primary btn-sm mt-2"
-                    >
-                      Open in Spotify
-                    </a>
-                  </li>
+                    title={`https://open.spotify.com/track/${track.id}`}
+                    onPlayTrack={handlePlayTrack}
+                    displayTitle={`${track.name} - ${track.artists
+                      .map((artist) => artist.name)
+                      .join(", ")}`}
+                  />
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>
