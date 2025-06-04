@@ -5,7 +5,6 @@
 }
 
 .track-recommendation-form h2 {
-  color: #1db954;
   margin-bottom: 20px;
   text-align: center;
 }
@@ -36,7 +35,7 @@
 }
 
 button {
-  background-color: #1db954;
+  background-color: blue;
   color: white;
   padding: 12px 24px;
   border: none;

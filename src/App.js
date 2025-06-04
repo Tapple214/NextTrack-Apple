@@ -68,7 +68,7 @@ function App() {
           </div>
           {/* Preview */}
           <div
-            className="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center"
+            className=" flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ height: "80%" }}
           >
             {activeView === "player" ? (
@@ -89,7 +89,7 @@ function App() {
         </div>
         {/* Recommendation Results */}
         <div
-          className="similar-tracks flex-grow-1 p-3 overflow-auto bg-primary"
+          className="similar-tracks flex-grow-1 p-3 overflow-auto"
           style={{
             maxWidth: "50%",
             backgroundColor: "#f8f9fa",
@@ -130,7 +130,7 @@ function App() {
       <div className="d-flex col-6" style={{ height: "50%", width: "100vw" }}>
         {/* Ready-made Track List */}
         <div
-          className="bg-danger flex-grow-1 px-3 pt-3 overflow-auto"
+          className="flex-grow-1 px-3 pt-3 overflow-auto"
           style={{ maxWidth: "50%" }}
         >
           <h3>Sample Tracks:</h3>
@@ -145,8 +145,12 @@ function App() {
           ))}
         </div>
         {/*  Custom Track List */}
-        <div className="bg-warning flex-grow-1" style={{ maxWidth: "50%" }}>
-          5
+        <div
+          className="bg-warning flex-grow-1 d-flex justify-content-center align-items-center"
+          style={{ maxWidth: "50%" }}
+        >
+          this will be the area to allow users to create their customized
+          playlist
         </div>
       </div>
     </div>

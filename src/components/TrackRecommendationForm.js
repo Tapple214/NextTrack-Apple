@@ -111,7 +111,11 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
             disabled={!isDatasetLoaded}
           />
         </div>
-        <button type="submit" disabled={loading || !isDatasetLoaded}>
+        <button
+          className="btn-primary"
+          type="submit"
+          disabled={loading || !isDatasetLoaded}
+        >
           {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
