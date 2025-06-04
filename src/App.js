@@ -1,12 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import Item from "./components/item";
 import TrackRecommendationForm from "./components/TrackRecommendationForm";
+import spotifyDataset from "./utils/spotifyDataset";
 import "./components/TrackRecommendationForm.css";
 
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [trackInfo, setTrackInfo] = useState(null);
+  const [sampleTracks, setSampleTracks] = useState([]);
+
+  useEffect(() => {
+    const loadSampleTracks = async () => {
+      await spotifyDataset.loadDataset();
+      const samples = spotifyDataset.getSampleTrackIds();
+      setSampleTracks(samples);
+    };
+    loadSampleTracks();
+  }, []);
 
   const handleRecommendations = (newRecommendations, newTrackInfo) => {
     setRecommendations(newRecommendations);
@@ -102,8 +113,13 @@ function App() {
           className="bg-danger flex-grow-1 px-3 pt-3"
           style={{ maxWidth: "50%" }}
         >
-          <Item title="hello" />
-          <Item title="https://open.spotify.com/track/5QO79kh1waicV47BqGRL3g" />
+          <h3>Sample Tracks:</h3>
+          {sampleTracks.map((track) => (
+            <Item
+              key={track.id}
+              title={`https://open.spotify.com/track/${track.id}`}
+            />
+          ))}
         </div>
         {/*  Custom Track List */}
         <div className="bg-warning flex-grow-1" style={{ maxWidth: "50%" }}>

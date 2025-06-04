@@ -47,7 +47,14 @@ class SpotifyDataset {
           }));
           this.isLoaded = true;
           console.log("Dataset loaded with", this.tracks.length, "tracks");
-          console.log("Sample track:", this.tracks[0]);
+          console.log(
+            "Sample tracks:",
+            this.tracks.slice(0, 5).map((t) => ({
+              id: t.id,
+              name: t.name,
+              artist: t.artists[0].name,
+            }))
+          );
         },
         error: (error) => {
           console.error("Error parsing CSV:", error);
@@ -142,6 +149,18 @@ class SpotifyDataset {
     } catch (err) {
       throw new Error("Invalid Spotify URL format");
     }
+  }
+
+  // Get sample track IDs from the dataset
+  getSampleTrackIds() {
+    if (!this.isLoaded) {
+      return [];
+    }
+    return this.tracks.slice(0, 10).map((track) => ({
+      id: track.id,
+      name: track.name,
+      artist: track.artists[0].name,
+    }));
   }
 }
 
