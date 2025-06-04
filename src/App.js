@@ -44,10 +44,19 @@ function App() {
             <i className="bi bi-info-circle-fill"></i>
           </div>
           {/* Preview */}
+
           <div
             className="bg-secondary flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ height: "80%" }}
           >
+            <iframe
+              src="https://open.spotify.com/embed/track/07WEDHF2YwVgYuBugi2ECO"
+              width="100%"
+              height="380"
+              frameBorder="0"
+              allowtransparency="true"
+              allow="encrypted-media"
+            ></iframe>
             <TrackRecommendationForm
               onRecommendations={handleRecommendations}
             />
