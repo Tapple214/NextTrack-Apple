@@ -126,7 +126,7 @@ function App() {
       <div className="d-flex col-6" style={{ height: "50%", width: "100vw" }}>
         {/* Ready-made Track List */}
         <div
-          className="bg-danger flex-grow-1 px-3 pt-3"
+          className="bg-danger flex-grow-1 px-3 pt-3 overflow-auto"
           style={{ maxWidth: "50%" }}
         >
           <h3>Sample Tracks:</h3>
@@ -135,6 +135,7 @@ function App() {
               key={track.id}
               title={`https://open.spotify.com/track/${track.id}`}
               onPlayTrack={handlePlayTrack}
+              displayTitle={`${track.name} - ${track.artist}`}
             />
           ))}
         </div>

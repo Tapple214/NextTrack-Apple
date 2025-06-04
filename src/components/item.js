@@ -1,6 +1,6 @@
 import React from "react";
 
-function Item({ title, onPlayTrack }) {
+function Item({ title, onPlayTrack, displayTitle }) {
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(title)
@@ -21,13 +21,10 @@ function Item({ title, onPlayTrack }) {
     }
   };
 
-  // Extract track name from URL for display
-  const trackName = title.split("/").pop();
-
   return (
     <div className="card mb-2">
       <div className="card-body">
-        <h5 className="card-title">{trackName}</h5>
+        <h5 className="card-title">{displayTitle}</h5>
         <div className="d-flex justify-content-end gap-2">
           <button
             className="btn btn-link p-0"
