@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import Item from "./components/item.js";
 import TrackRecommendationForm from "./components/TrackRecommendationForm.js";
-import customRecommender from "./utils/customRecommender.js";
+import recommenderAPI from "./utils/RecommenderAPI.js";
 import "./components/TrackRecommendationForm.css";
 
 function App() {
@@ -16,7 +16,7 @@ function App() {
     const loadSampleTracks = async () => {
       try {
         // Get sample tracks from our custom recommender
-        const tracks = await customRecommender.getSampleTracks(5);
+        const tracks = await recommenderAPI.getSampleTracks(5);
         setSampleTracks(tracks);
       } catch (error) {
         console.error("Error loading sample tracks:", error);

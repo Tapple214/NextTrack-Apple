@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import customRecommender from "../utils/customRecommender.js";
+import recommenderAPI from "../utils/RecommenderAPI.js";
 import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
@@ -32,12 +32,10 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
       console.log("Extracted track ID:", trackId);
 
       // Get track details and recommendations using our custom recommender
-      const seedTrack = await customRecommender.getTrackFeatures(trackId);
+      const seedTrack = await recommenderAPI.getTrackFeatures(trackId);
       console.log("Got seed track:", seedTrack.name);
 
-      const recommendations = await customRecommender.findSimilarTracks(
-        trackId
-      );
+      const recommendations = await recommenderAPI.findSimilarTracks(trackId);
       console.log("Got recommendations:", recommendations.length);
 
       onRecommendations(recommendations, seedTrack);

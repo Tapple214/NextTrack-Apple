@@ -1,6 +1,6 @@
 import SpotifyWebApi from "spotify-web-api-node";
 
-class CustomRecommender {
+class RecommenderAPI {
   constructor() {
     this.spotifyApi = new SpotifyWebApi({
       clientId: "c6d965d704db458abac7673400b7b007",
@@ -155,4 +155,4 @@ class CustomRecommender {
   }
 }
 
-export default new CustomRecommender();
+export default new RecommenderAPI();
