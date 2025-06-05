@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Form, Button, Alert, Container } from "react-bootstrap";
 import recommenderAPI from "../utils/RecommenderAPI.js";
 import "./TrackRecommendationForm.css";
 
@@ -28,12 +29,10 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
     setError(null);
 
     try {
-      // Extract track ID from URL
       const trackId = extractTrackId(trackUrl);
       console.log("Extracted track ID:", trackId);
       setCurrentTrackId(trackId);
 
-      // Get track details and recommendations using our custom recommender
       const seedTrack = await recommenderAPI.getTrackFeatures(trackId);
       console.log("Got seed track:", seedTrack.name);
 
@@ -52,33 +51,38 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
   };
 
   return (
-    <div className="track-recommendation-form">
-      <h2>Get Track Recommendations</h2>
-      <form onSubmit={handleSubmit}>
-        <div className="track-inputs">
-          <div className="track-input-group">
-            <input
-              type="text"
-              value={trackUrl}
-              onChange={(e) => setTrackUrl(e.target.value)}
-              placeholder="Spotify Track URL"
-              required
-            />
-          </div>
-        </div>
-        <button className="submit-button" type="submit" disabled={loading}>
+    <Container className="track-recommendation-form">
+      <h2 className="text-center mb-4">Get Track Recommendations</h2>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-4">
+          <Form.Control
+            type="text"
+            value={trackUrl}
+            onChange={(e) => setTrackUrl(e.target.value)}
+            placeholder="Spotify Track URL"
+            required
+          />
+        </Form.Group>
+        <Button
+          variant="primary"
+          type="submit"
+          disabled={loading}
+          className="w-100 py-3"
+        >
           {loading ? "Loading..." : "Get Recommendations"}
-        </button>
-      </form>
+        </Button>
+      </Form>
 
       {error && (
-        <div className="error-message">
-          <p>Error: {error}</p>
-          <p className="error-help">
+        <Alert variant="danger" className="mt-3">
+          <Alert.Heading>Error</Alert.Heading>
+          <p>{error}</p>
+          <hr />
+          <p className="mb-0">
             Please make sure you're using a valid Spotify track URL (e.g.,
             https://open.spotify.com/track/...)
           </p>
-        </div>
+        </Alert>
       )}
 
       {currentTrackId && (
@@ -94,7 +98,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           />
         </div>
       )}
-    </div>
+    </Container>
   );
 };
 

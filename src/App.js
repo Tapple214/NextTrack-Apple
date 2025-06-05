@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Container, Row, Col, Button, Card } from "react-bootstrap";
 import "./App.css";
 import Item from "./components/item.js";
 import TrackRecommendationForm from "./components/TrackRecommendationForm.js";
@@ -38,46 +39,19 @@ function App() {
     setActiveView("player"); // Switch to player view when a track is played
   };
 
-  return (
-    <div className="App container-fluid">
-      <div className="row" style={{ height: "50vh" }}>
-        <div className="col-6 d-flex flex-column" style={{ height: "100%" }}>
-          {/* Tools Area */}
-          <div
-            className="bg-primary d-flex justify-content-around align-items-center"
-            style={{ height: "10%", fontSize: "30px" }}
-          >
-            <button
-              className="btn btn-link text-white"
-              onClick={() => setActiveView("form")}
-              title="Get Recommendations"
-            >
-              <i className="bi bi-magic"></i>
-            </button>
-            <button
-              className="btn btn-link text-white"
-              onClick={() => setActiveView("player")}
-              title="Play Track"
-            >
-              <i className="bi bi-film"></i>
-            </button>
-            <button className="btn btn-link text-white" title="Information">
-              <i className="bi bi-info-circle-fill"></i>
-            </button>
-          </div>
-          {/* Preview */}
-          <div
-            className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center"
-            style={{ height: "80%", overflow: "hidden" }}
-          >
-            {activeView === "player" && currentTrack ? (
-              <div className="music-player mt-3">
-                <h4>Now Playing:</h4>
-                <div>
+  const renderMainContent = () => {
+    if (activeView === "player") {
+      return (
+        <Card className="music-player mt-3">
+          <Card.Body>
+            <Card.Title>Now Playing:</Card.Title>
+            {currentTrack ? (
+              <>
+                <Card.Text>
                   <strong>{currentTrack.name}</strong> by{" "}
                   {currentTrack.artists?.map((a) => a.name).join(", ") ||
                     "Unknown Artist"}
-                </div>
+                </Card.Text>
                 <iframe
                   width="300"
                   height="80"
@@ -87,37 +61,88 @@ function App() {
                   allowFullScreen
                   title="Spotify Music Player"
                 />
-                <button
-                  className="btn btn-secondary mt-2"
-                  onClick={() => setActiveView("form")}
-                >
-                  Close Player
-                </button>
-              </div>
+              </>
             ) : (
-              <TrackRecommendationForm
-                onRecommendations={handleRecommendations}
-              />
+              <Card.Text>Select a track to play</Card.Text>
             )}
+            <Button
+              variant="secondary"
+              className="mt-2"
+              onClick={() => {
+                setActiveView("form");
+                setCurrentTrack(null);
+              }}
+            >
+              Close Player
+            </Button>
+          </Card.Body>
+        </Card>
+      );
+    }
+    return (
+      <TrackRecommendationForm onRecommendations={handleRecommendations} />
+    );
+  };
+
+  return (
+    <Container fluid className="App">
+      <Row style={{ height: "50vh" }}>
+        <Col md={6} className="d-flex flex-column" style={{ height: "100%" }}>
+          {/* Tools Area */}
+          <div
+            className="bg-primary d-flex justify-content-around align-items-center"
+            style={{ height: "10%", fontSize: "30px" }}
+          >
+            <Button
+              variant="link"
+              className="text-white"
+              onClick={() => {
+                setActiveView("form");
+                setCurrentTrack(null);
+              }}
+              title="Get Recommendations"
+            >
+              <i className="bi bi-magic"></i>
+            </Button>
+            <Button
+              variant="link"
+              className="text-white"
+              onClick={() => setActiveView("player")}
+              title="Play Track"
+            >
+              <i className="bi bi-film"></i>
+            </Button>
+            <Button variant="link" className="text-white" title="Information">
+              <i className="bi bi-info-circle-fill"></i>
+            </Button>
           </div>
-        </div>
-        <div
-          className="similar-tracks flex-grow-1 p-3 overflow-auto"
+          {/* Preview */}
+          <div
+            className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center"
+            style={{ height: "80%", overflow: "hidden" }}
+          >
+            {renderMainContent()}
+          </div>
+        </Col>
+        <Col
+          md={6}
+          className="p-3 overflow-auto"
           style={{
-            maxWidth: "50%",
             backgroundColor: "#f8f9fa",
             borderLeft: "1px solid #dee2e6",
           }}
         >
           {trackInfo && (
-            <div className="track-info mb-4">
-              <h3>Seed Track:</h3>
-              <div className="track-details">
-                <strong>{trackInfo.name}</strong> by{" "}
-                {trackInfo.artists?.map((a) => a.name).join(", ") ||
-                  "Unknown Artist"}
-              </div>
-            </div>
+            <Card className="mb-4">
+              <Card.Body>
+                <Card.Title>Seed Track:</Card.Title>
+                <Card.Text>
+                  <strong>{trackInfo.name}</strong> by{" "}
+                  {trackInfo.artists?.map((a) => a.name).join(", ") ||
+                    "Unknown Artist"}
+                </Card.Text>
+              </Card.Body>
+            </Card>
           )}
 
           {recommendations.length > 0 && (
@@ -139,15 +164,12 @@ function App() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+        </Col>
+      </Row>
 
-      <div className="d-flex col-6" style={{ height: "50%", width: "100vw" }}>
+      <Row className="d-flex" style={{ height: "50%", width: "100vw" }}>
         {/* Ready-made Track List */}
-        <div
-          className="flex-grow-1 px-3 pt-3 overflow-auto"
-          style={{ maxWidth: "50%" }}
-        >
+        <Col md={6} className="px-3 pt-3 overflow-auto">
           <h3>Sample Tracks:</h3>
           {sampleTracks.map((track) => (
             <Item
@@ -160,17 +182,17 @@ function App() {
               metrics={track}
             />
           ))}
-        </div>
+        </Col>
         {/*  Custom Track List */}
-        <div
-          className="bg-warning flex-grow-1 d-flex justify-content-center align-items-center"
-          style={{ maxWidth: "50%" }}
+        <Col
+          md={6}
+          className="bg-warning d-flex justify-content-center align-items-center"
         >
           this will be the area to allow users to create their customized
           playlist
-        </div>
-      </div>
-    </div>
+        </Col>
+      </Row>
+    </Container>
   );
 }
 
