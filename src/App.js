@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Button, Card } from "react-bootstrap";
-import "./App.css";
 import Item from "./components/item.js";
 import TrackRecommendationForm from "./components/TrackRecommendationForm.js";
 import recommenderAPI from "./utils/RecommenderAPI.js";
-import "./components/TrackRecommendationForm.css";
 
 function App() {
   const [recommendations, setRecommendations] = useState([]);

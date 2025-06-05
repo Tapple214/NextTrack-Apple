@@ -1,6 +1,5 @@
 import React from "react";
 import { Card, Button, Popover, OverlayTrigger } from "react-bootstrap";
-import "./item.css";
 
 function Item({ title, onPlayTrack, displayTitle, metrics }) {
   const handleCopyLink = () => {

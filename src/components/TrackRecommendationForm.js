@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Form, Button, Alert, Container } from "react-bootstrap";
 import recommenderAPI from "../utils/RecommenderAPI.js";
-import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
   const [trackUrl, setTrackUrl] = useState("");
