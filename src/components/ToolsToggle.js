@@ -11,12 +11,12 @@ export default function ToolsToggle({
       {activeView === "form" ? (
         <TrackRecommendationForm onRecommendations={handleRecommendations} />
       ) : (
-        <>
+        <div className="pt-4 w-100 d-flex justify-content-center align-items-center">
           {currentTrack ? (
             <>
               <iframe
                 src={`https://open.spotify.com/embed/track/${currentTrack.id}`}
-                width="100%"
+                width="90%"
                 height="380"
                 allowtransparency="true"
                 allow="encrypted-media"
@@ -29,7 +29,7 @@ export default function ToolsToggle({
           ) : (
             <Card.Text>Select a track to play</Card.Text>
           )}
-        </>
+        </div>
       )}
     </div>
   );

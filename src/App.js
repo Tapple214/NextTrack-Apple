@@ -41,7 +41,7 @@ function App() {
     <div className="d-flex flex-column vh-100">
       {/* Top half of the page */}
       <div className="h-50">
-        {/* Tools Area */}
+        {/* Tools Area (Left) */}
         <Col md={6} className="d-flex flex-column h-100 bg-warning">
           <Tools
             setActiveView={setActiveView}
