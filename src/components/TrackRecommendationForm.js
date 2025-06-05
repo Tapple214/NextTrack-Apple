@@ -83,20 +83,6 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           </p>
         </Alert>
       )}
-
-      {currentTrackId && (
-        <div className="mt-4">
-          <iframe
-            width="300"
-            height="80"
-            src={`https://open.spotify.com/embed/track/${currentTrackId}`}
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-            title="Spotify Music Player"
-          />
-        </div>
-      )}
     </Container>
   );
 };

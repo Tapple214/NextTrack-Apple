@@ -5,6 +5,7 @@ import Item from "./components/item.js";
 import recommenderAPI from "./utils/RecommenderAPI.js";
 import Tools from "./components/tools.js";
 import ToolsToggle from "./components/ToolsToggle.js";
+import RecommendationResults from "./components/RecommendationResults.js";
 
 function App() {
   const [recommendations, setRecommendations] = useState([]);
@@ -40,9 +41,9 @@ function App() {
   return (
     <div className="d-flex flex-column vh-100">
       {/* Top half of the page */}
-      <div className="h-50">
+      <div className="h-50 d-flex">
         {/* Tools Area (Left) */}
-        <Col md={6} className="d-flex flex-column h-100 bg-warning">
+        <Col md={6} className="d-flex flex-column h-100">
           <Tools
             setActiveView={setActiveView}
             setCurrentTrack={setCurrentTrack}
@@ -56,53 +57,19 @@ function App() {
         </Col>
 
         {/* Recommendation Results */}
-        <Col
-          md={6}
-          className="p-3 overflow-auto"
-          style={{
-            backgroundColor: "#f8f9fa",
-            borderLeft: "1px solid #dee2e6",
-          }}
-        >
-          {trackInfo && (
-            <Card className="mb-4">
-              <Card.Body>
-                <Card.Title>Seed Track:</Card.Title>
-                <Card.Text>
-                  <strong>{trackInfo.name}</strong> by{" "}
-                  {trackInfo.artists?.map((a) => a.name).join(", ") ||
-                    "Unknown Artist"}
-                </Card.Text>
-              </Card.Body>
-            </Card>
-          )}
-
-          {recommendations.length > 0 && (
-            <div className="recommendations">
-              <h3>Similar Tracks:</h3>
-              <div className="recommendation-list">
-                {recommendations.map((track) => (
-                  <Item
-                    key={track.id}
-                    title={`https://open.spotify.com/embed/track/${track.id}`}
-                    onPlayTrack={handlePlayTrack}
-                    displayTitle={`${track.name} - ${
-                      track.artists?.map((a) => a.name).join(", ") ||
-                      "Unknown Artist"
-                    }`}
-                    metrics={track}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        <Col md={6} className="p-3 overflow-auto bg-warning">
+          <RecommendationResults
+            trackInfo={trackInfo}
+            recommendations={recommendations}
+            handlePlayTrack={handlePlayTrack}
+          />
         </Col>
       </div>
 
       {/* Bottom half of the page */}
       <div className="d-flex" style={{ height: "50%" }}>
         <Col md={6} className="px-3 pt-3 overflow-auto">
-          <h3>Sample Tracks:</h3>
+          <p className="fw-bold">Here are some tracks to get you started!</p>
           {sampleTracks.map((track) => (
             <Item
               key={track.id}
@@ -117,10 +84,10 @@ function App() {
         </Col>
         <Col
           md={6}
-          className="bg-warning d-flex justify-content-center align-items-center"
+          className="bg-warning d-flex text-center justify-content-center align-items-center"
         >
-          this will be the area to allow users to create their customized
-          playlist
+          This will be the area to allow users to create their customized
+          playlist (TBC)
         </Col>
       </div>
     </div>
