@@ -68,8 +68,8 @@ function App() {
           </div>
           {/* Preview */}
           <div
-            className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center overflow-auto"
-            style={{ height: "80%" }}
+            className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center"
+            style={{ height: "80%", overflow: "hidden" }}
           >
             {activeView === "player" ? (
               <iframe
