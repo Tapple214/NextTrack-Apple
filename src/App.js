@@ -16,9 +16,12 @@ function App() {
 
   useEffect(() => {
     const loadSampleTracks = async () => {
-      await spotifyDataset.loadDataset();
-      const samples = spotifyDataset.getSampleTrackIds();
-      setSampleTracks(samples);
+      try {
+        const samples = await spotifyDataset.getSampleTrackIds();
+        setSampleTracks(samples);
+      } catch (error) {
+        console.error("Error loading sample tracks:", error);
+      }
     };
     loadSampleTracks();
   }, []);

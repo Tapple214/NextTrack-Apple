@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import recommendationService from "../utils/recommendationService";
+import spotifyDataset from "../utils/spotifyDataset";
 import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
@@ -13,28 +13,9 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
     setError(null);
 
     try {
-      // Extract track ID from URL
-      const trackId = (() => {
-        try {
-          const urlObj = new URL(trackUrl);
-          const pathParts = urlObj.pathname.split("/");
-          return pathParts[pathParts.length - 1];
-        } catch (err) {
-          throw new Error("Invalid Spotify URL format");
-        }
-      })();
-
-      if (!trackId) {
-        throw new Error("Please provide a track URL");
-      }
-
-      // Get recommendations
-      const recommendations = await recommendationService.getRecommendations([
-        trackId,
-      ]);
-
-      // Get details for the track
-      const seedTrack = await recommendationService.getTrackDetails(trackId);
+      // Get track details and recommendations using spotifyDataset
+      const seedTrack = await spotifyDataset.getTrackByUrl(trackUrl);
+      const recommendations = await spotifyDataset.findSimilarTracks(seedTrack);
 
       onRecommendations(recommendations, seedTrack);
     } catch (err) {
