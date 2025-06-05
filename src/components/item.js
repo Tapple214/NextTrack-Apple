@@ -6,7 +6,7 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
     navigator.clipboard
       .writeText(title)
       .then(() => {
-        // You could add a toast notification here
+        // TODO: Add a toast notification
         console.log("Link copied to clipboard");
       })
       .catch((err) => {
