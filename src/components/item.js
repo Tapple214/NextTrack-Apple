@@ -78,10 +78,10 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
           onClick={handleCopyLink}
           title="Copy link to clipboard"
         >
-          <i className="bi bi-link"></i>
+          <i className="bi bi-link text-success"></i>
         </Button>
         <Button variant="link" onClick={handlePlayTrack} title="Play track">
-          <i className="bi bi-play-fill"></i>
+          <i className="bi bi-play-fill text-success"></i>
         </Button>
         {metrics && (
           <OverlayTrigger
@@ -90,7 +90,7 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
             overlay={metricsPopover}
           >
             <Button variant="link" title="Track characteristics">
-              <i className="bi bi-info-circle-fill"></i>
+              <i className="bi bi-info-circle-fill text-success"></i>
             </Button>
           </OverlayTrigger>
         )}
