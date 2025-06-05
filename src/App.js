@@ -9,12 +9,11 @@ function App() {
   const [trackInfo, setTrackInfo] = useState(null);
   const [sampleTracks, setSampleTracks] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(null);
-  const [activeView, setActiveView] = useState("form"); // 'form' or 'player'
+  const [activeView, setActiveView] = useState("form");
 
   useEffect(() => {
     const loadSampleTracks = async () => {
       try {
-        // Get sample tracks from our custom recommender
         const tracks = await recommenderAPI.getSampleTracks(5);
         setSampleTracks(tracks);
       } catch (error) {
@@ -30,11 +29,10 @@ function App() {
   };
 
   const handlePlayTrack = (trackId) => {
-    // Find the track in recommendations or sampleTracks
     const allTracks = [...recommendations, ...sampleTracks];
     const track = allTracks.find((t) => t.id === trackId);
     setCurrentTrack(track);
-    setActiveView("player"); // Switch to player view when a track is played
+    setActiveView("player");
   };
 
   const renderMainContent = () => {
@@ -86,7 +84,6 @@ function App() {
     <Container fluid className="App">
       <Row style={{ height: "50vh" }}>
         <Col md={6} className="d-flex flex-column" style={{ height: "100%" }}>
-          {/* Tools Area */}
           <div
             className="bg-primary d-flex justify-content-around align-items-center"
             style={{ height: "10%", fontSize: "30px" }}
@@ -114,7 +111,6 @@ function App() {
               <i className="bi bi-info-circle-fill"></i>
             </Button>
           </div>
-          {/* Preview */}
           <div
             className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center"
             style={{ height: "80%", overflow: "hidden" }}
@@ -166,7 +162,6 @@ function App() {
       </Row>
 
       <Row className="d-flex" style={{ height: "50%", width: "100vw" }}>
-        {/* Ready-made Track List */}
         <Col md={6} className="px-3 pt-3 overflow-auto">
           <h3>Sample Tracks:</h3>
           {sampleTracks.map((track) => (
@@ -181,7 +176,6 @@ function App() {
             />
           ))}
         </Col>
-        {/*  Custom Track List */}
         <Col
           md={6}
           className="bg-warning d-flex justify-content-center align-items-center"
