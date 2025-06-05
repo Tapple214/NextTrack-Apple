@@ -30,12 +30,6 @@ class CustomRecommender {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Authentication response:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        });
         throw new Error(
           `Authentication failed: ${response.status} ${response.statusText}`
         );
@@ -48,7 +42,6 @@ class CustomRecommender {
         this.tokenExpirationTime = Date.now() + data.expires_in * 1000 - 300000;
         console.log("Successfully authenticated with Spotify API");
       } else {
-        console.error("Authentication response missing access token:", data);
         throw new Error("Failed to get access token from response");
       }
     } catch (error) {
@@ -66,85 +59,39 @@ class CustomRecommender {
     }
   }
 
-  // Calculate cosine similarity between two tracks
-  calculateSimilarity(track1, track2) {
-    const features = [
-      "danceability",
-      "energy",
-      "valence",
-      "acousticness",
-      "instrumentalness",
-      "liveness",
-      "speechiness",
-    ];
-
-    let dotProduct = 0;
-    let magnitude1 = 0;
-    let magnitude2 = 0;
-
-    for (const feature of features) {
-      dotProduct += track1[feature] * track2[feature];
-      magnitude1 += track1[feature] * track1[feature];
-      magnitude2 += track2[feature] * track2[feature];
-    }
-
-    magnitude1 = Math.sqrt(magnitude1);
-    magnitude2 = Math.sqrt(magnitude2);
-
-    if (magnitude1 === 0 || magnitude2 === 0) return 0;
-    return dotProduct / (magnitude1 * magnitude2);
-  }
-
-  // Get track features from Spotify API
   async getTrackFeatures(trackId) {
     try {
+      // Check cache first
       if (this.trackDatabase.has(trackId)) {
         return this.trackDatabase.get(trackId);
       }
 
       await this.ensureAuthenticated();
 
-      // First get the track data
+      // Get track data from Spotify
       const trackData = await this.spotifyApi.getTrack(trackId);
-      console.log("Successfully fetched track data for:", trackId);
 
-      // Then get audio features with retry logic
+      // Try to get audio features, but don't fail if we can't
       let audioFeatures = null;
-      let retryCount = 0;
-      const maxRetries = 3;
-
-      while (retryCount < maxRetries) {
-        try {
-          audioFeatures = await this.spotifyApi.getAudioFeaturesForTrack(
-            trackId
-          );
-          console.log("Successfully fetched audio features for:", trackId);
-          break;
-        } catch (error) {
-          retryCount++;
-          console.log(`Retry ${retryCount} for audio features...`);
-          if (retryCount === maxRetries) {
-            console.warn(
-              "Could not fetch audio features after retries, using default values"
-            );
-            // Use default values if we can't get audio features
-            audioFeatures = {
-              body: {
-                danceability: 0.5,
-                energy: 0.5,
-                valence: 0.5,
-                tempo: 120,
-                acousticness: 0.5,
-                instrumentalness: 0.5,
-                liveness: 0.5,
-                speechiness: 0.5,
-              },
-            };
-          } else {
-            // Wait before retrying
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-          }
-        }
+      try {
+        const featuresResponse = await this.spotifyApi.getAudioFeaturesForTrack(
+          trackId
+        );
+        audioFeatures = featuresResponse.body;
+      } catch (error) {
+        console.warn(
+          `Could not fetch audio features for track ${trackId}, using default values`
+        );
+        audioFeatures = {
+          danceability: 0.5,
+          energy: 0.5,
+          valence: 0.5,
+          tempo: 120,
+          acousticness: 0.5,
+          instrumentalness: 0.5,
+          liveness: 0.5,
+          speechiness: 0.5,
+        };
       }
 
       const trackInfo = {
@@ -154,7 +101,7 @@ class CustomRecommender {
           name: artist.name,
           id: artist.id,
         })),
-        ...audioFeatures.body,
+        ...audioFeatures,
       };
 
       this.trackDatabase.set(trackId, trackInfo);
@@ -165,7 +112,6 @@ class CustomRecommender {
     }
   }
 
-  // Find similar tracks using our custom algorithm
   async findSimilarTracks(seedTrackId, limit = 5) {
     try {
       await this.ensureAuthenticated();
@@ -174,139 +120,101 @@ class CustomRecommender {
       const seedTrack = await this.getTrackFeatures(seedTrackId);
       console.log("Found seed track:", seedTrack.name);
 
-      // Get a sample of tracks to compare against
-      const sampleTracks = await this.getSampleTracks(50);
-      console.log("Found sample tracks:", sampleTracks.length);
+      // Get recommendations based on artist and genre
+      const recommendations = [];
+      const seenTrackIds = new Set([seedTrackId]);
 
-      // Calculate similarity scores for all tracks
-      const tracksWithScores = await Promise.all(
-        sampleTracks.map(async (track) => {
-          const features = await this.getTrackFeatures(track.id);
-          const similarity = this.calculateSimilarity(seedTrack, features);
-          return { ...features, similarity };
-        })
-      );
+      // 1. Get tracks by the same artist
+      for (const artist of seedTrack.artists) {
+        try {
+          const artistTracks = await this.spotifyApi.searchTracks(
+            `artist:${artist.name}`,
+            { limit: Math.ceil(limit * 2), market: "US" }
+          );
 
-      // Sort by similarity and return top matches
-      return tracksWithScores
-        .sort((a, b) => b.similarity - a.similarity)
-        .slice(0, limit)
-        .map(({ similarity, ...track }) => track);
+          for (const track of artistTracks.body.tracks.items) {
+            if (!seenTrackIds.has(track.id)) {
+              const trackFeatures = await this.getTrackFeatures(track.id);
+              recommendations.push(trackFeatures);
+              seenTrackIds.add(track.id);
+            }
+            if (recommendations.length >= limit) break;
+          }
+        } catch (error) {
+          console.warn(
+            `Error fetching tracks for artist ${artist.name}:`,
+            error
+          );
+        }
+        if (recommendations.length >= limit) break;
+      }
+
+      // 2. If we don't have enough recommendations, get tracks with similar audio features
+      if (recommendations.length < limit) {
+        const remainingLimit = limit - recommendations.length;
+        try {
+          const similarTracks = await this.spotifyApi.searchTracks(
+            `year:2020-2024`, // Recent tracks
+            { limit: remainingLimit * 2, market: "US" }
+          );
+
+          for (const track of similarTracks.body.tracks.items) {
+            if (!seenTrackIds.has(track.id)) {
+              const trackFeatures = await this.getTrackFeatures(track.id);
+              recommendations.push(trackFeatures);
+              seenTrackIds.add(track.id);
+            }
+            if (recommendations.length >= limit) break;
+          }
+        } catch (error) {
+          console.warn("Error fetching similar tracks:", error);
+        }
+      }
+
+      return recommendations.slice(0, limit);
     } catch (error) {
       console.error("Error in findSimilarTracks:", error);
       throw new Error(`Failed to find similar tracks: ${error.message}`);
     }
   }
 
-  // Get a sample of tracks to compare against
-  async getSampleTracks(limit) {
+  async getSampleTracks(limit = 5) {
     try {
       await this.ensureAuthenticated();
 
-      // Define different genres to get tracks from
+      // Get popular tracks from different genres
       const genres = ["pop", "rock", "hip-hop", "electronic", "jazz"];
-
       const tracks = [];
+      const seenTrackIds = new Set();
 
-      // Get one track from each genre
       for (const genre of genres) {
         try {
-          // Search for tracks in the current genre
           const searchResults = await this.spotifyApi.searchTracks(
             `genre:${genre}`,
-            {
-              limit: 1,
-              market: "US",
-            }
+            { limit: 2, market: "US" }
           );
 
-          if (searchResults.body.tracks.items.length > 0) {
-            const track = searchResults.body.tracks.items[0];
-
-            // Get audio features for the track
-            let audioFeatures;
-            try {
-              audioFeatures = await this.spotifyApi.getAudioFeaturesForTrack(
-                track.id
-              );
-            } catch (error) {
-              console.warn(
-                `Could not fetch audio features for track ${track.id}, using default values`
-              );
-              audioFeatures = {
-                body: {
-                  danceability: 0.5,
-                  energy: 0.5,
-                  valence: 0.5,
-                  tempo: 120,
-                  acousticness: 0.5,
-                  instrumentalness: 0.5,
-                  liveness: 0.5,
-                  speechiness: 0.5,
-                },
-              };
+          for (const track of searchResults.body.tracks.items) {
+            if (!seenTrackIds.has(track.id)) {
+              tracks.push({
+                id: track.id,
+                name: track.name,
+                artists: track.artists.map((a) => ({
+                  name: a.name,
+                  id: a.id,
+                })),
+              });
+              seenTrackIds.add(track.id);
             }
-
-            tracks.push({
-              id: track.id,
-              name: track.name,
-              artists: track.artists.map((artist) => ({
-                name: artist.name,
-                id: artist.id,
-              })),
-              ...audioFeatures.body,
-            });
+            if (tracks.length >= limit) break;
           }
         } catch (error) {
-          console.warn(`Error fetching track for genre ${genre}:`, error);
-          // Continue with the next genre instead of failing completely
-          continue;
+          console.warn(`Error fetching tracks for genre ${genre}:`, error);
         }
+        if (tracks.length >= limit) break;
       }
 
-      // If we couldn't get any tracks, use a fallback list
-      if (tracks.length === 0) {
-        console.warn("No tracks fetched from genres, using fallback tracks");
-        const fallbackTracks = [
-          "4cOdK2wGLETKBW3PvgPWqT", // "Shape of You" by Ed Sheeran
-          "6rqhFgbbKwnb9MLmUQDhG6", // "Blinding Lights" by The Weeknd
-          "3ee8Jmje8o58CHK66QrVC2", // "Watermelon Sugar" by Harry Styles
-          "0V3wPSX9ygBnCm8psDIegu", // "As It Was" by Harry Styles
-          "07WEDHF2YwVgYuBugi2ECO", // "Bad Guy" by Billie Eilish
-        ];
-
-        for (const trackId of fallbackTracks) {
-          try {
-            const trackData = await this.spotifyApi.getTrack(trackId);
-            if (trackData && trackData.body) {
-              tracks.push({
-                id: trackData.body.id,
-                name: trackData.body.name,
-                artists: trackData.body.artists.map((artist) => ({
-                  name: artist.name,
-                  id: artist.id,
-                })),
-                danceability: 0.5,
-                energy: 0.5,
-                valence: 0.5,
-                tempo: 120,
-                acousticness: 0.5,
-                instrumentalness: 0.5,
-                liveness: 0.5,
-                speechiness: 0.5,
-              });
-            }
-          } catch (error) {
-            console.warn(`Error fetching fallback track ${trackId}:`, error);
-          }
-        }
-      }
-
-      if (tracks.length === 0) {
-        throw new Error("Failed to fetch any tracks");
-      }
-
-      return tracks;
+      return tracks.slice(0, limit);
     } catch (error) {
       console.error("Error in getSampleTracks:", error);
       throw new Error(`Failed to get sample tracks: ${error.message}`);
