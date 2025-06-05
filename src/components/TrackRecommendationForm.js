@@ -1,150 +1,145 @@
-import React, { useState, useEffect } from "react";
-import spotifyDataset from "../utils/spotifyDataset";
+import React, { useState } from "react";
+import recommendationService from "../utils/recommendationService";
+import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
-  const [spotifyUrl, setSpotifyUrl] = useState("");
+  const [trackUrls, setTrackUrls] = useState([""]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [trackInfo, setTrackInfo] = useState(null);
-  const [isDatasetLoaded, setIsDatasetLoaded] = useState(false);
-
-  // Load the dataset when component mounts
-  useEffect(() => {
-    const loadDataset = async () => {
-      try {
-        await spotifyDataset.loadDataset();
-        setIsDatasetLoaded(true);
-      } catch (err) {
-        console.error("Error loading dataset:", err);
-        setError("Failed to load track dataset. Please try again later.");
-      }
-    };
-
-    loadDataset();
-  }, []);
+  const [preferences, setPreferences] = useState({
+    audioFeatures: 0.4,
+    genre: 0.2,
+    artist: 0.2,
+    lyrics: 0.1,
+    metadata: 0.1,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!isDatasetLoaded) {
-      setError("Please wait while we load the track dataset...");
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      // Get the seed track from our dataset
-      const seedTrack = spotifyDataset.getTrackByUrl(spotifyUrl);
+      // Extract track IDs from URLs
+      const trackIds = trackUrls
+        .filter((url) => url.trim() !== "")
+        .map((url) => {
+          try {
+            const urlObj = new URL(url);
+            const pathParts = urlObj.pathname.split("/");
+            return pathParts[pathParts.length - 1];
+          } catch (err) {
+            throw new Error("Invalid Spotify URL format");
+          }
+        });
 
-      if (!seedTrack) {
-        setError(
-          <div>
-            <p>Track not found in our dataset. This could be because:</p>
-            <ul>
-              <li>Our dataset is from 2020 and doesn't include newer tracks</li>
-              <li>
-                The track ID format has changed since our dataset was created
-              </li>
-              <li>The track is not available in our region</li>
-            </ul>
-            <p>
-              Please try one of our sample tracks from the list below, or try a
-              different track URL.
-            </p>
-            <p>
-              Note: Our dataset contains tracks from before 2020, so newer
-              tracks won't be found.
-            </p>
-          </div>
-        );
-        setTrackInfo(null);
-        return;
+      if (trackIds.length === 0) {
+        throw new Error("Please provide at least one track URL");
       }
 
-      // Only update track info if we found a valid track
-      setTrackInfo(seedTrack);
+      // Get recommendations
+      const recommendations = await recommendationService.getRecommendations(
+        trackIds,
+        preferences
+      );
 
-      // Get custom recommendations using our dataset
-      const recommendedTracks = spotifyDataset.findSimilarTracks(seedTrack);
-      onRecommendations(recommendedTracks, seedTrack);
+      // Get details for the first track (seed track)
+      const seedTrack = await recommendationService.getTrackDetails(
+        trackIds[0]
+      );
+
+      onRecommendations(recommendations, seedTrack);
     } catch (err) {
       console.error("Error:", err);
-      if (err.message === "Invalid Spotify URL format") {
-        setError(
-          <div>
-            <p>Invalid Spotify URL format. Please make sure:</p>
-            <ul>
-              <li>The URL starts with "https://open.spotify.com/track/"</li>
-              <li>The URL is complete and not truncated</li>
-              <li>You've copied the entire URL from Spotify</li>
-            </ul>
-          </div>
-        );
-      } else {
-        setError(
-          "Error fetching recommendations. Please check your Spotify URL and try again."
-        );
-      }
-      setTrackInfo(null);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleAddTrack = () => {
+    setTrackUrls([...trackUrls, ""]);
+  };
+
+  const handleRemoveTrack = (index) => {
+    const newUrls = trackUrls.filter((_, i) => i !== index);
+    setTrackUrls(newUrls);
+  };
+
+  const handleTrackUrlChange = (index, value) => {
+    const newUrls = [...trackUrls];
+    newUrls[index] = value;
+    setTrackUrls(newUrls);
+  };
+
+  const handlePreferenceChange = (factor, value) => {
+    setPreferences((prev) => ({
+      ...prev,
+      [factor]: parseFloat(value),
+    }));
+  };
+
   return (
     <div className="track-recommendation-form">
       <h2>Get Track Recommendations</h2>
-      {!isDatasetLoaded && (
-        <div className="loading-message">Loading track dataset...</div>
-      )}
       <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="spotifyUrl">Spotify Track URL:</label>
-          <input
-            type="text"
-            id="spotifyUrl"
-            value={spotifyUrl}
-            onChange={(e) => setSpotifyUrl(e.target.value)}
-            placeholder="Paste a Spotify track URL (e.g., https://open.spotify.com/track/...)"
-            required
-            disabled={!isDatasetLoaded}
-          />
+        <div className="track-inputs">
+          {trackUrls.map((url, index) => (
+            <div key={index} className="track-input-group">
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => handleTrackUrlChange(index, e.target.value)}
+                placeholder="Paste a Spotify track URL"
+                required={index === 0}
+              />
+              {index > 0 && (
+                <button
+                  type="button"
+                  className="remove-track"
+                  onClick={() => handleRemoveTrack(index)}
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
+          <button type="button" className="add-track" onClick={handleAddTrack}>
+            Add Another Track
+          </button>
         </div>
-        <button
-          className="btn-primary"
-          type="submit"
-          disabled={loading || !isDatasetLoaded}
-        >
+
+        <div className="preferences-section">
+          <h3>Recommendation Preferences</h3>
+          <div className="preference-sliders">
+            {Object.entries(preferences).map(([factor, value]) => (
+              <div key={factor} className="preference-slider">
+                <label htmlFor={factor}>
+                  {factor.charAt(0).toUpperCase() + factor.slice(1)}:
+                </label>
+                <input
+                  type="range"
+                  id={factor}
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={value}
+                  onChange={(e) =>
+                    handlePreferenceChange(factor, e.target.value)
+                  }
+                />
+                <span>{value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <button className="submit-button" type="submit" disabled={loading}>
           {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
 
-      {error && (
-        <div
-          className="error-message"
-          style={{
-            marginTop: "1rem",
-            padding: "1rem",
-            backgroundColor: "#fff3f3",
-            border: "1px solid #ffcdd2",
-            borderRadius: "4px",
-            color: "#d32f2f",
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {trackInfo && (
-        <div className="track-info">
-          <h3>Seed Track:</h3>
-          <div className="track-details">
-            <strong>{trackInfo.name}</strong> by{" "}
-            {trackInfo.artists.map((artist) => artist.name).join(", ")}
-          </div>
-        </div>
-      )}
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 };

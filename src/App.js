@@ -68,7 +68,7 @@ function App() {
           </div>
           {/* Preview */}
           <div
-            className=" flex-grow-1 d-flex justify-content-center align-items-center"
+            className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center overflow-auto"
             style={{ height: "80%" }}
           >
             {activeView === "player" ? (
