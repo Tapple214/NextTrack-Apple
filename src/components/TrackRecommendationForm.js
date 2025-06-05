@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import customRecommender from "../utils/customRecommender";
+import customRecommender from "../utils/customRecommender.js";
 import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import Item from "./components/item.js";
 import TrackRecommendationForm from "./components/TrackRecommendationForm.js";
-import musicBrainzDataset from "./datasets/musicBrainzDataset.js";
+import customRecommender from "./utils/customRecommender.js";
 import "./components/TrackRecommendationForm.css";
 
 function App() {
@@ -15,15 +15,9 @@ function App() {
   useEffect(() => {
     const loadSampleTracks = async () => {
       try {
-        // For demo, use Billie Eilish as sample artist
-        const artists = await musicBrainzDataset.searchArtist("Billie Eilish");
-        if (!artists.length) return;
-        const artist = artists[0];
-        const tracks = await musicBrainzDataset.getSimilarTracks(artist.id, 5);
-        const formatted = tracks.map((t) =>
-          musicBrainzDataset.formatTrackData(t, artist)
-        );
-        setSampleTracks(formatted);
+        // Get sample tracks from our custom recommender
+        const tracks = await customRecommender.getSampleTracks(5);
+        setSampleTracks(tracks);
       } catch (error) {
         console.error("Error loading sample tracks:", error);
       }
@@ -80,16 +74,18 @@ function App() {
               <div className="music-player mt-3">
                 <h4>Now Playing:</h4>
                 <div>
-                  <strong>{currentTrack.name}</strong> by {currentTrack.artist}
+                  <strong>{currentTrack.name}</strong> by{" "}
+                  {currentTrack.artists?.map((a) => a.name).join(", ") ||
+                    "Unknown Artist"}
                 </div>
                 <iframe
                   width="300"
                   height="80"
-                  src={currentTrack.youtubeEmbedUrl}
+                  src={`https://open.spotify.com/embed/track/${currentTrack.id}`}
                   frameBorder="0"
                   allow="autoplay; encrypted-media"
                   allowFullScreen
-                  title="YouTube Music Player"
+                  title="Spotify Music Player"
                 />
                 <button
                   className="btn btn-secondary mt-2"
@@ -117,7 +113,9 @@ function App() {
             <div className="track-info mb-4">
               <h3>Seed Track:</h3>
               <div className="track-details">
-                <strong>{trackInfo.name}</strong> by {trackInfo.artist}
+                <strong>{trackInfo.name}</strong> by{" "}
+                {trackInfo.artists?.map((a) => a.name).join(", ") ||
+                  "Unknown Artist"}
               </div>
             </div>
           )}
@@ -129,9 +127,12 @@ function App() {
                 {recommendations.map((track) => (
                   <Item
                     key={track.id}
-                    title={track.youtubeEmbedUrl}
+                    title={`https://open.spotify.com/embed/track/${track.id}`}
                     onPlayTrack={handlePlayTrack}
-                    displayTitle={`${track.name} - ${track.artist}`}
+                    displayTitle={`${track.name} - ${
+                      track.artists?.map((a) => a.name).join(", ") ||
+                      "Unknown Artist"
+                    }`}
                     metrics={track}
                   />
                 ))}
@@ -151,9 +152,11 @@ function App() {
           {sampleTracks.map((track) => (
             <Item
               key={track.id}
-              title={track.youtubeEmbedUrl}
+              title={`https://open.spotify.com/embed/track/${track.id}`}
               onPlayTrack={handlePlayTrack}
-              displayTitle={`${track.name} - ${track.artist}`}
+              displayTitle={`${track.name} - ${
+                track.artists?.map((a) => a.name).join(", ") || "Unknown Artist"
+              }`}
               metrics={track}
             />
           ))}

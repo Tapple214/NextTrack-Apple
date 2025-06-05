@@ -228,6 +228,10 @@ class CustomRecommender {
       return tracksData.map((track) => ({
         id: track.body.id,
         name: track.body.name,
+        artists: track.body.artists.map((artist) => ({
+          name: artist.name,
+          id: artist.id,
+        })),
       }));
     } catch (error) {
       console.error("Error in getSampleTracks:", error);
