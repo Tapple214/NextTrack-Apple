@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import "./item.css";
 
 function Item({ title, onPlayTrack, displayTitle, metrics }) {
+  const [showPlayer, setShowPlayer] = useState(false);
+
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(title)
@@ -15,10 +17,9 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
   };
 
   const handlePlayTrack = () => {
-    // Extract track ID from the Spotify URL
-    const trackId = title.split("/").pop();
+    setShowPlayer(!showPlayer);
     if (onPlayTrack) {
-      onPlayTrack(trackId);
+      onPlayTrack(metrics.id);
     }
   };
 
@@ -30,71 +31,68 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
     <div className="card mb-2">
       <div className="card-body">
         <h5 className="card-title">{displayTitle}</h5>
-        <div className="d-flex justify-content-end gap-2">
-          <button
-            className="btn btn-link p-0"
-            onClick={handleCopyLink}
-            title="Copy link to clipboard"
-          >
-            <i className="bi bi-link"></i>
-          </button>
-          <button
-            className="btn btn-link p-0"
-            onClick={handlePlayTrack}
-            title="Play track"
-          >
-            <i className="bi bi-play-fill"></i>
-          </button>
-          {metrics && (
-            <div className="position-relative">
-              <button
-                className="btn btn-link p-0"
-                title="Track characteristics"
-              >
-                <i className="bi bi-info-circle-fill"></i>
-              </button>
-              <div className="track-metrics-popover">
-                <div className="metrics-grid">
-                  <div className="metric">
-                    <span className="metric-label">Danceability:</span>
-                    <span className="metric-value">
-                      {formatMetric(metrics.danceability)}
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Energy:</span>
-                    <span className="metric-value">
-                      {formatMetric(metrics.energy)}
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Acousticness:</span>
-                    <span className="metric-value">
-                      {formatMetric(metrics.acousticness)}
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Instrumentalness:</span>
-                    <span className="metric-value">
-                      {formatMetric(metrics.instrumentalness)}
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Liveness:</span>
-                    <span className="metric-value">
-                      {formatMetric(metrics.liveness)}
-                    </span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Valence:</span>
-                    <span className="metric-value">
-                      {formatMetric(metrics.valence)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+        <button
+          className="btn btn-primary btn-sm me-2"
+          onClick={handlePlayTrack}
+        >
+          {showPlayer ? "Hide Player" : "Play"}
+        </button>
+        <button
+          className="btn btn-outline-secondary btn-sm"
+          onClick={handleCopyLink}
+        >
+          Copy YouTube Link
+        </button>
+        {showPlayer && (
+          <div className="mt-2">
+            <iframe
+              width="300"
+              height="80"
+              src={title}
+              frameBorder="0"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+              title="YouTube Music Player"
+            />
+          </div>
+        )}
+        <div className="metrics-grid mt-2">
+          <div className="metric">
+            <span className="metric-label">Danceability:</span>
+            <span className="metric-value">
+              {formatMetric(metrics.danceability || 0)}
+            </span>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Energy:</span>
+            <span className="metric-value">
+              {formatMetric(metrics.energy || 0)}
+            </span>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Acousticness:</span>
+            <span className="metric-value">
+              {formatMetric(metrics.acousticness || 0)}
+            </span>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Instrumentalness:</span>
+            <span className="metric-value">
+              {formatMetric(metrics.instrumentalness || 0)}
+            </span>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Liveness:</span>
+            <span className="metric-value">
+              {formatMetric(metrics.liveness || 0)}
+            </span>
+          </div>
+          <div className="metric">
+            <span className="metric-label">Valence:</span>
+            <span className="metric-value">
+              {formatMetric(metrics.valence || 0)}
+            </span>
+          </div>
         </div>
       </div>
     </div>
