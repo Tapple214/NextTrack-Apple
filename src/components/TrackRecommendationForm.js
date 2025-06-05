@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import spotifyDataset from "../utils/spotifyDataset";
+import customRecommender from "../utils/customRecommender";
 import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
@@ -7,20 +7,45 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const extractTrackId = (url) => {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+      const trackId = pathParts[pathParts.length - 1];
+      if (!trackId) {
+        throw new Error("No track ID found in URL");
+      }
+      return trackId;
+    } catch (err) {
+      throw new Error("Invalid Spotify URL format");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // Get track details and recommendations using spotifyDataset
-      const seedTrack = await spotifyDataset.getTrackByUrl(trackUrl);
-      const recommendations = await spotifyDataset.findSimilarTracks(seedTrack);
+      // Extract track ID from URL
+      const trackId = extractTrackId(trackUrl);
+      console.log("Extracted track ID:", trackId);
+
+      // Get track details and recommendations using our custom recommender
+      const seedTrack = await customRecommender.getTrackFeatures(trackId);
+      console.log("Got seed track:", seedTrack.name);
+
+      const recommendations = await customRecommender.findSimilarTracks(
+        trackId
+      );
+      console.log("Got recommendations:", recommendations.length);
 
       onRecommendations(recommendations, seedTrack);
     } catch (err) {
-      console.error("Error:", err);
-      setError(err.message);
+      console.error("Error in handleSubmit:", err);
+      setError(
+        err.message || "An error occurred while getting recommendations"
+      );
     } finally {
       setLoading(false);
     }
@@ -47,7 +72,15 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
         </button>
       </form>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <div className="error-message">
+          <p>Error: {error}</p>
+          <p className="error-help">
+            Please make sure you're using a valid Spotify track URL (e.g.,
+            https://open.spotify.com/track/...)
+          </p>
+        </div>
+      )}
     </div>
   );
 };
