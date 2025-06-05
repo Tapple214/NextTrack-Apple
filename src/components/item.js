@@ -1,9 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import "./item.css";
 
 function Item({ title, onPlayTrack, displayTitle, metrics }) {
-  const [showPlayer, setShowPlayer] = useState(false);
-
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(title)
@@ -17,7 +15,6 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
   };
 
   const handlePlayTrack = () => {
-    setShowPlayer(!showPlayer);
     if (onPlayTrack) {
       onPlayTrack(metrics.id);
     }
@@ -97,19 +94,6 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
             </div>
           )}
         </div>
-        {showPlayer && (
-          <div className="mt-2">
-            <iframe
-              width="300"
-              height="80"
-              src={title}
-              frameBorder="0"
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-              title="YouTube Music Player"
-            />
-          </div>
-        )}
       </div>
     </div>
   );

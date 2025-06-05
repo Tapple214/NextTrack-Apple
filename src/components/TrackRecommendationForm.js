@@ -6,6 +6,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
   const [trackUrl, setTrackUrl] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [currentTrackId, setCurrentTrackId] = useState(null);
 
   const extractTrackId = (url) => {
     try {
@@ -30,6 +31,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
       // Extract track ID from URL
       const trackId = extractTrackId(trackUrl);
       console.log("Extracted track ID:", trackId);
+      setCurrentTrackId(trackId);
 
       // Get track details and recommendations using our custom recommender
       const seedTrack = await recommenderAPI.getTrackFeatures(trackId);
@@ -76,6 +78,20 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
             Please make sure you're using a valid Spotify track URL (e.g.,
             https://open.spotify.com/track/...)
           </p>
+        </div>
+      )}
+
+      {currentTrackId && (
+        <div className="mt-4">
+          <iframe
+            width="300"
+            height="80"
+            src={`https://open.spotify.com/embed/track/${currentTrackId}`}
+            frameBorder="0"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+            title="Spotify Music Player"
+          />
         </div>
       )}
     </div>
