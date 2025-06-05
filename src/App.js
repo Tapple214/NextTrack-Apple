@@ -57,7 +57,7 @@ function App() {
         </Col>
 
         {/* Recommendation Results */}
-        <Col md={6} className="p-3 overflow-auto bg-warning">
+        <Col md={6} className="p-3 overflow-auto bg-success bg-opacity-10">
           <RecommendationResults
             trackInfo={trackInfo}
             recommendations={recommendations}
@@ -68,23 +68,33 @@ function App() {
 
       {/* Bottom half of the page */}
       <div className="d-flex" style={{ height: "50%" }}>
-        <Col md={6} className="px-3 pt-3 overflow-auto">
+        <Col
+          md={6}
+          className="px-3 pt-3 overflow-auto  bg-success bg-opacity-10"
+        >
           <p className="fw-bold">Here are some tracks to get you started!</p>
           {sampleTracks.map((track) => (
             <Item
               key={track.id}
               title={`https://open.spotify.com/embed/track/${track.id}`}
               onPlayTrack={handlePlayTrack}
-              displayTitle={`${track.name} - ${
-                track.artists?.map((a) => a.name).join(", ") || "Unknown Artist"
-              }`}
+              displayTitle={
+                <div>
+                  {track.name}
+                  <br />
+                  <p className="m-0" style={{ fontSize: "12px" }}>
+                    {track.artists?.map((a) => a.name).join(", ") ||
+                      "Unknown Artist"}
+                  </p>
+                </div>
+              }
               metrics={track}
             />
           ))}
         </Col>
         <Col
           md={6}
-          className="bg-warning d-flex text-center justify-content-center align-items-center"
+          className="d-flex text-center justify-content-center align-items-center"
         >
           This will be the area to allow users to create their customized
           playlist (TBC)

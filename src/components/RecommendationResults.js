@@ -9,7 +9,7 @@ export default function RecommendationResults({
     <>
       {" "}
       {trackInfo && (
-        <div className="mb-4 bg-light p-1">
+        <div className="mb-3 bg-light p-2 rounded">
           <strong>Added Track:</strong>
           <div>
             {trackInfo.name} by{" "}
@@ -20,17 +20,23 @@ export default function RecommendationResults({
       )}
       {recommendations.length > 0 && (
         <div className="recommendations">
-          <h3>Similar Tracks:</h3>
+          <p className="fw-bold">Similar Tracks:</p>
           <div className="recommendation-list">
             {recommendations.map((track) => (
               <Item
                 key={track.id}
                 title={`https://open.spotify.com/embed/track/${track.id}`}
                 onPlayTrack={handlePlayTrack}
-                displayTitle={`${track.name} - ${
-                  track.artists?.map((a) => a.name).join(", ") ||
-                  "Unknown Artist"
-                }`}
+                displayTitle={
+                  <div>
+                    {track.name}
+                    <br />
+                    <p className="m-0" style={{ fontSize: "12px" }}>
+                      {track.artists?.map((a) => a.name).join(", ") ||
+                        "Unknown Artist"}
+                    </p>
+                  </div>
+                }
                 metrics={track}
               />
             ))}

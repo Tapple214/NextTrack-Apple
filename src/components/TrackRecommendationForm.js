@@ -63,7 +63,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           />
         </Form.Group>
         <Button
-          variant="primary"
+          variant="success"
           type="submit"
           disabled={loading}
           className="w-100 py-3"

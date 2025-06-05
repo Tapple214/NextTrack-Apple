@@ -70,44 +70,32 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
   );
 
   return (
-    <Card className="mb-2">
-      <Card.Body>
-        <Card.Title>{displayTitle}</Card.Title>
-        <div className="d-flex justify-content-end gap-2">
-          <Button
-            variant="link"
-            className="p-0"
-            onClick={handleCopyLink}
-            title="Copy link to clipboard"
+    <div className="bg-light p-2 rounded mb-1 d-flex justify-content-between">
+      {displayTitle}
+      <div className="d-flex justify-content-end gap-2">
+        <Button
+          variant="link"
+          onClick={handleCopyLink}
+          title="Copy link to clipboard"
+        >
+          <i className="bi bi-link"></i>
+        </Button>
+        <Button variant="link" onClick={handlePlayTrack} title="Play track">
+          <i className="bi bi-play-fill"></i>
+        </Button>
+        {metrics && (
+          <OverlayTrigger
+            trigger="hover"
+            placement="right"
+            overlay={metricsPopover}
           >
-            <i className="bi bi-link"></i>
-          </Button>
-          <Button
-            variant="link"
-            className="p-0"
-            onClick={handlePlayTrack}
-            title="Play track"
-          >
-            <i className="bi bi-play-fill"></i>
-          </Button>
-          {metrics && (
-            <OverlayTrigger
-              trigger="hover"
-              placement="right"
-              overlay={metricsPopover}
-            >
-              <Button
-                variant="link"
-                className="p-0"
-                title="Track characteristics"
-              >
-                <i className="bi bi-info-circle-fill"></i>
-              </Button>
-            </OverlayTrigger>
-          )}
-        </div>
-      </Card.Body>
-    </Card>
+            <Button variant="link" title="Track characteristics">
+              <i className="bi bi-info-circle-fill"></i>
+            </Button>
+          </OverlayTrigger>
+        )}
+      </div>
+    </div>
   );
 }
 

@@ -3,7 +3,7 @@ import { Button } from "react-bootstrap";
 export default function Tools({ setActiveView, setCurrentTrack }) {
   return (
     <div
-      className="bg-primary d-flex justify-content-around align-items-center"
+      className="bg-success d-flex justify-content-around align-items-center"
       style={{ height: "10%", fontSize: "30px" }}
     >
       <Button
