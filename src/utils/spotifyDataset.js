@@ -275,11 +275,11 @@ class SpotifyDataset {
 
       // Use a curated list of popular tracks with current, valid IDs
       const popularTracks = [
-        "5QO79kh1waicV47BqGRL3g", // "Bad Guy" by Billie Eilish
+        "4cOdK2wGLETKBW3PvgPWqT", // "Shape of You" by Ed Sheeran
         "6rqhFgbbKwnb9MLmUQDhG6", // "Blinding Lights" by The Weeknd
         "3ee8Jmje8o58CHK66QrVC2", // "Watermelon Sugar" by Harry Styles
-        "4cOdK2wGLETKBW3PvgPWqT", // "Shape of You" by Ed Sheeran
         "0V3wPSX9ygBnCm8psDIegu", // "As It Was" by Harry Styles
+        "07WEDHF2YwVgYuBugi2ECO", // "Bad Guy" by Billie Eilish
       ];
 
       // Get track details for all tracks

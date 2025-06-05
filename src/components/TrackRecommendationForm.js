@@ -1,12 +1,25 @@
 import React, { useState } from "react";
-import musicBrainzDataset from "../datasets/musicBrainzDataset.js";
+import customRecommender from "../utils/customRecommender";
 import "./TrackRecommendationForm.css";
 
 const TrackRecommendationForm = ({ onRecommendations }) => {
-  const [trackName, setTrackName] = useState("");
-  const [artistName, setArtistName] = useState("");
+  const [trackUrl, setTrackUrl] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const extractTrackId = (url) => {
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split("/");
+      const trackId = pathParts[pathParts.length - 1];
+      if (!trackId) {
+        throw new Error("No track ID found in URL");
+      }
+      return trackId;
+    } catch (err) {
+      throw new Error("Invalid Spotify URL format");
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,31 +27,25 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
     setError(null);
 
     try {
-      // Search for the track by name and artist
-      const searchQuery = `${trackName} ${artistName}`.trim();
-      const tracks = await musicBrainzDataset.searchTrack(searchQuery);
-      if (!tracks.length) throw new Error("Track not found");
-      const track = tracks[0];
-      // Get artist info
-      const artist = track["artist-credit"]?.[0]?.artist || {
-        name: artistName,
-      };
-      // Get similar tracks
-      const recommendations = await musicBrainzDataset.getSimilarTracks(
-        artist.id,
-        5
+      // Extract track ID from URL
+      const trackId = extractTrackId(trackUrl);
+      console.log("Extracted track ID:", trackId);
+
+      // Get track details and recommendations using our custom recommender
+      const seedTrack = await customRecommender.getTrackFeatures(trackId);
+      console.log("Got seed track:", seedTrack.name);
+
+      const recommendations = await customRecommender.findSimilarTracks(
+        trackId
       );
-      // Format recommendations for the web app
-      const formatted = recommendations.map((t) =>
-        musicBrainzDataset.formatTrackData(t, artist)
-      );
-      onRecommendations(
-        formatted,
-        musicBrainzDataset.formatTrackData(track, artist)
-      );
+      console.log("Got recommendations:", recommendations.length);
+
+      onRecommendations(recommendations, seedTrack);
     } catch (err) {
-      console.error("Error:", err);
-      setError(err.message);
+      console.error("Error in handleSubmit:", err);
+      setError(
+        err.message || "An error occurred while getting recommendations"
+      );
     } finally {
       setLoading(false);
     }
@@ -52,16 +59,9 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           <div className="track-input-group">
             <input
               type="text"
-              value={trackName}
-              onChange={(e) => setTrackName(e.target.value)}
-              placeholder="Track Name"
-              required
-            />
-            <input
-              type="text"
-              value={artistName}
-              onChange={(e) => setArtistName(e.target.value)}
-              placeholder="Artist Name"
+              value={trackUrl}
+              onChange={(e) => setTrackUrl(e.target.value)}
+              placeholder="Spotify Track URL"
               required
             />
           </div>
@@ -70,7 +70,16 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
-      {error && <div className="error-message">{error}</div>}
+
+      {error && (
+        <div className="error-message">
+          <p>Error: {error}</p>
+          <p className="error-help">
+            Please make sure you're using a valid Spotify track URL (e.g.,
+            https://open.spotify.com/track/...)
+          </p>
+        </div>
+      )}
     </div>
   );
 };
