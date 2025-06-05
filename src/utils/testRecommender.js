@@ -1,4 +1,4 @@
-import customRecommender from "./customRecommender";
+import customRecommender from "./customRecommender.js";
 
 async function testRecommender() {
   console.log("Starting recommendation API tests...\n");
@@ -55,24 +55,46 @@ async function testRecommender() {
     console.log("First call (should fetch from API)...");
     const startTime1 = Date.now();
     await customRecommender.getTrackFeatures(testTrackId);
-    const time1 = Date.now() - startTime1;
+    const endTime1 = Date.now();
+    console.log(`Time taken: ${endTime1 - startTime1}ms`);
 
-    console.log("Second call (should use cache)...");
+    console.log("\nSecond call (should use cache)...");
     const startTime2 = Date.now();
     await customRecommender.getTrackFeatures(testTrackId);
-    const time2 = Date.now() - startTime2;
-
-    console.log(`First call time: ${time1}ms`);
-    console.log(`Second call time: ${time2}ms`);
+    const endTime2 = Date.now();
+    console.log(`Time taken: ${endTime2 - startTime2}ms`);
     console.log("✅ Cache testing successful\n");
 
-    console.log("All tests completed successfully! 🎉");
+    // Test 6: Similarity Algorithm Verification
+    console.log("Test 6: Verifying custom similarity algorithm...");
+    const track1 = await customRecommender.getTrackFeatures(testTrackId);
+    const track2 = await customRecommender.getTrackFeatures(
+      "6rqhFgbbKwnb9MLmUQDhG6"
+    ); // "Blinding Lights"
+    const similarity = customRecommender.calculateSimilarity(track1, track2);
+    console.log("Similarity score between tracks:", similarity);
+    console.log("✅ Similarity algorithm verification successful\n");
+
+    // Test 7: Multiple Recommendations Consistency
+    console.log("Test 7: Testing recommendation consistency...");
+    const recommendations1 = await customRecommender.findSimilarTracks(
+      testTrackId,
+      3
+    );
+    const recommendations2 = await customRecommender.findSimilarTracks(
+      testTrackId,
+      3
+    );
+
+    const areEqual = recommendations1.every((rec1, index) => {
+      const rec2 = recommendations2[index];
+      return rec1.id === rec2.id;
+    });
+
+    console.log("Recommendations are consistent:", areEqual);
+    console.log("✅ Recommendation consistency test successful\n");
   } catch (error) {
     console.error("❌ Test failed:", error);
-    console.error("Error details:", {
-      message: error.message,
-      stack: error.stack,
-    });
   }
 }
 

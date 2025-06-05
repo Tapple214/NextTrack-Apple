@@ -203,36 +203,110 @@ class CustomRecommender {
     try {
       await this.ensureAuthenticated();
 
-      // Use a curated list of popular tracks with current, valid IDs
-      const popularTracks = [
-        "4cOdK2wGLETKBW3PvgPWqT", // "Shape of You" by Ed Sheeran
-        "6rqhFgbbKwnb9MLmUQDhG6", // "Blinding Lights" by The Weeknd
-        "3ee8Jmje8o58CHK66QrVC2", // "Watermelon Sugar" by Harry Styles
-        "0V3wPSX9ygBnCm8psDIegu", // "As It Was" by Harry Styles
-        "07WEDHF2YwVgYuBugi2ECO", // "Bad Guy" by Billie Eilish
-      ];
+      // Define different genres to get tracks from
+      const genres = ["pop", "rock", "hip-hop", "electronic", "jazz"];
 
-      // Get track details for all tracks
-      const tracksData = await Promise.all(
-        popularTracks.map(async (trackId) => {
+      const tracks = [];
+
+      // Get one track from each genre
+      for (const genre of genres) {
+        try {
+          // Search for tracks in the current genre
+          const searchResults = await this.spotifyApi.searchTracks(
+            `genre:${genre}`,
+            {
+              limit: 1,
+              market: "US",
+            }
+          );
+
+          if (searchResults.body.tracks.items.length > 0) {
+            const track = searchResults.body.tracks.items[0];
+
+            // Get audio features for the track
+            let audioFeatures;
+            try {
+              audioFeatures = await this.spotifyApi.getAudioFeaturesForTrack(
+                track.id
+              );
+            } catch (error) {
+              console.warn(
+                `Could not fetch audio features for track ${track.id}, using default values`
+              );
+              audioFeatures = {
+                body: {
+                  danceability: 0.5,
+                  energy: 0.5,
+                  valence: 0.5,
+                  tempo: 120,
+                  acousticness: 0.5,
+                  instrumentalness: 0.5,
+                  liveness: 0.5,
+                  speechiness: 0.5,
+                },
+              };
+            }
+
+            tracks.push({
+              id: track.id,
+              name: track.name,
+              artists: track.artists.map((artist) => ({
+                name: artist.name,
+                id: artist.id,
+              })),
+              ...audioFeatures.body,
+            });
+          }
+        } catch (error) {
+          console.warn(`Error fetching track for genre ${genre}:`, error);
+          // Continue with the next genre instead of failing completely
+          continue;
+        }
+      }
+
+      // If we couldn't get any tracks, use a fallback list
+      if (tracks.length === 0) {
+        console.warn("No tracks fetched from genres, using fallback tracks");
+        const fallbackTracks = [
+          "4cOdK2wGLETKBW3PvgPWqT", // "Shape of You" by Ed Sheeran
+          "6rqhFgbbKwnb9MLmUQDhG6", // "Blinding Lights" by The Weeknd
+          "3ee8Jmje8o58CHK66QrVC2", // "Watermelon Sugar" by Harry Styles
+          "0V3wPSX9ygBnCm8psDIegu", // "As It Was" by Harry Styles
+          "07WEDHF2YwVgYuBugi2ECO", // "Bad Guy" by Billie Eilish
+        ];
+
+        for (const trackId of fallbackTracks) {
           try {
             const trackData = await this.spotifyApi.getTrack(trackId);
-            return trackData;
+            if (trackData && trackData.body) {
+              tracks.push({
+                id: trackData.body.id,
+                name: trackData.body.name,
+                artists: trackData.body.artists.map((artist) => ({
+                  name: artist.name,
+                  id: artist.id,
+                })),
+                danceability: 0.5,
+                energy: 0.5,
+                valence: 0.5,
+                tempo: 120,
+                acousticness: 0.5,
+                instrumentalness: 0.5,
+                liveness: 0.5,
+                speechiness: 0.5,
+              });
+            }
           } catch (error) {
-            console.error(`Error fetching track ${trackId}:`, error);
-            throw error;
+            console.warn(`Error fetching fallback track ${trackId}:`, error);
           }
-        })
-      );
+        }
+      }
 
-      return tracksData.map((track) => ({
-        id: track.body.id,
-        name: track.body.name,
-        artists: track.body.artists.map((artist) => ({
-          name: artist.name,
-          id: artist.id,
-        })),
-      }));
+      if (tracks.length === 0) {
+        throw new Error("Failed to fetch any tracks");
+      }
+
+      return tracks;
     } catch (error) {
       console.error("Error in getSampleTracks:", error);
       throw new Error(`Failed to get sample tracks: ${error.message}`);

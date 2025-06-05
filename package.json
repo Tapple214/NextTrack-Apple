@@ -22,7 +22,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "test:recommender": "node -r esm src/utils/testRecommender.js"
+    "test:recommender": "node src/utils/testRecommender.js"
   },
   "eslintConfig": {
     "extends": [
