@@ -48,30 +48,62 @@ function App() {
     <div className="App container-fluid">
       <div className="row" style={{ height: "50vh" }}>
         <div className="col-6 d-flex flex-column" style={{ height: "100%" }}>
-          <TrackRecommendationForm onRecommendations={handleRecommendations} />
-          {activeView === "player" && currentTrack && (
-            <div className="music-player mt-3">
-              <h4>Now Playing:</h4>
-              <div>
-                <strong>{currentTrack.name}</strong> by {currentTrack.artist}
+          {/* Tools Area */}
+          <div
+            className="bg-primary d-flex justify-content-around align-items-center"
+            style={{ height: "10%", fontSize: "30px" }}
+          >
+            <button
+              className="btn btn-link text-white"
+              onClick={() => setActiveView("form")}
+              title="Get Recommendations"
+            >
+              <i className="bi bi-magic"></i>
+            </button>
+            <button
+              className="btn btn-link text-white"
+              onClick={() => setActiveView("player")}
+              title="Play Track"
+            >
+              <i className="bi bi-film"></i>
+            </button>
+            <button className="btn btn-link text-white" title="Information">
+              <i className="bi bi-info-circle-fill"></i>
+            </button>
+          </div>
+          {/* Preview */}
+          <div
+            className="mt-5 z-3 flex-grow-1 d-flex justify-content-center align-items-center"
+            style={{ height: "80%", overflow: "hidden" }}
+          >
+            {activeView === "player" && currentTrack ? (
+              <div className="music-player mt-3">
+                <h4>Now Playing:</h4>
+                <div>
+                  <strong>{currentTrack.name}</strong> by {currentTrack.artist}
+                </div>
+                <iframe
+                  width="300"
+                  height="80"
+                  src={currentTrack.youtubeEmbedUrl}
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media"
+                  allowFullScreen
+                  title="YouTube Music Player"
+                />
+                <button
+                  className="btn btn-secondary mt-2"
+                  onClick={() => setActiveView("form")}
+                >
+                  Close Player
+                </button>
               </div>
-              <iframe
-                width="300"
-                height="80"
-                src={currentTrack.youtubeEmbedUrl}
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-                title="YouTube Music Player"
+            ) : (
+              <TrackRecommendationForm
+                onRecommendations={handleRecommendations}
               />
-              <button
-                className="btn btn-secondary mt-2"
-                onClick={() => setActiveView("form")}
-              >
-                Close Player
-              </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         <div
           className="similar-tracks flex-grow-1 p-3 overflow-auto"
