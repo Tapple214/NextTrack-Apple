@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Button, Popover, OverlayTrigger } from "react-bootstrap";
+import { Button, Popover, OverlayTrigger } from "react-bootstrap";
 
 function Item({ title, onPlayTrack, displayTitle, metrics }) {
   const handleCopyLink = () => {
@@ -20,50 +20,11 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
     }
   };
 
-  const formatMetric = (value) => {
-    return (value * 100).toFixed(1) + "%";
-  };
-
   const metricsPopover = (
     <Popover id="metrics-popover" className="p-3">
       <Popover.Body>
         <div className="metrics-grid">
-          <div className="metric">
-            <span className="metric-label">Danceability:</span>
-            <span className="metric-value">
-              {formatMetric(metrics.danceability || 0)}
-            </span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Energy:</span>
-            <span className="metric-value">
-              {formatMetric(metrics.energy || 0)}
-            </span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Acousticness:</span>
-            <span className="metric-value">
-              {formatMetric(metrics.acousticness || 0)}
-            </span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Instrumentalness:</span>
-            <span className="metric-value">
-              {formatMetric(metrics.instrumentalness || 0)}
-            </span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Liveness:</span>
-            <span className="metric-value">
-              {formatMetric(metrics.liveness || 0)}
-            </span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Valence:</span>
-            <span className="metric-value">
-              {formatMetric(metrics.valence || 0)}
-            </span>
-          </div>
+          Will contain track metrics/reason of selection (TBC)
         </div>
       </Popover.Body>
     </Popover>
@@ -71,8 +32,13 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
 
   return (
     <div className="bg-light p-2 rounded mb-1 d-flex justify-content-between">
+      {/* Song name and artist */}
       {displayTitle}
+
+      {/* Interaction buttons */}
+      {/* TODO: include delete button, etc. for different parts of the app */}
       <div className="d-flex justify-content-end gap-2">
+        {/* Copy link to clipboard */}
         <Button
           variant="link"
           onClick={handleCopyLink}
@@ -80,9 +46,13 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
         >
           <i className="bi bi-link text-success"></i>
         </Button>
+
+        {/* Play track */}
         <Button variant="link" onClick={handlePlayTrack} title="Play track">
           <i className="bi bi-play-fill text-success"></i>
         </Button>
+
+        {/* Track information */}
         {metrics && (
           <OverlayTrigger
             trigger="hover"
