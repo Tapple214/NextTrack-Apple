@@ -1,4 +1,4 @@
-import Item from "./Item.js";
+import Item from "./ItemDisplay.js";
 
 // Format artist name for display
 const formatArtistName = (artists) =>
