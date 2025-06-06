@@ -1,6 +1,6 @@
 import Item from "./Item.js";
 
-const formatArtists = (artists) =>
+const formatArtistName = (artists) =>
   artists?.map((a) => a.name).join(", ") || "Unknown Artist";
 
 export default function RecommendationResults({
@@ -21,7 +21,7 @@ export default function RecommendationResults({
       <div className="mb-3 bg-light p-2 rounded">
         <strong>Added Track:</strong>
         <div>
-          {trackInfo.name} by {formatArtists(trackInfo.artists)}
+          {trackInfo.name} by {formatArtistName(trackInfo.artists)}
         </div>
       </div>
 
@@ -39,7 +39,7 @@ export default function RecommendationResults({
                     {track.name}
                     <br />
                     <p className="m-0" style={{ fontSize: "12px" }}>
-                      {formatArtists(track.artists)}
+                      {formatArtistName(track.artists)}
                     </p>
                   </div>
                 }
