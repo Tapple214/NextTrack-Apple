@@ -20,12 +20,11 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
     }
   };
 
+  // TODO: Will contain track metrics/reason of selection (TBC)
   const metricsPopover = (
     <Popover id="metrics-popover" className="p-3">
       <Popover.Body>
-        <div className="metrics-grid">
-          Will contain track metrics/reason of selection (TBC)
-        </div>
+        <div className="metrics-grid">Selected due to: same artist</div>
       </Popover.Body>
     </Popover>
   );
