@@ -12,24 +12,24 @@ class RecommenderAPI {
   }
 
   async authenticate() {
+    const credentials = btoa(
+      `${this.spotifyApi.getClientId()}:${this.spotifyApi.getClientSecret()}`
+    );
     const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: `Basic ${btoa(
-          "c6d965d704db458abac7673400b7b007:a91f9fdde7e94d6cbb2e1ef59badac46"
-        )}`,
+        Authorization: `Basic ${credentials}`,
       },
       body: "grant_type=client_credentials",
     });
 
-    if (!response.ok) {
+    if (!response.ok)
       throw new Error(`Authentication failed: ${response.status}`);
-    }
 
     const { access_token, expires_in } = await response.json();
     this.spotifyApi.setAccessToken(access_token);
-    this.tokenExpirationTime = Date.now() + expires_in * 1000 - 300000;
+    this.tokenExpirationTime = Date.now() + (expires_in - 300) * 1000;
   }
 
   async ensureAuthenticated() {
@@ -39,9 +39,7 @@ class RecommenderAPI {
   }
 
   async getTrackFeatures(trackId) {
-    if (this.trackCache.has(trackId)) {
-      return this.trackCache.get(trackId);
-    }
+    if (this.trackCache.has(trackId)) return this.trackCache.get(trackId);
 
     await this.ensureAuthenticated();
     const [trackData, audioFeatures] = await Promise.all([
@@ -77,45 +75,45 @@ class RecommenderAPI {
   async findSimilarTracks(seedTrackId, limit = 5) {
     await this.ensureAuthenticated();
     const seedTrack = await this.getTrackFeatures(seedTrackId);
-    const recommendations = [];
     const seenTrackIds = new Set([seedTrackId]);
+    const recommendations = [];
 
     // Get tracks by the same artist
     for (const artist of seedTrack.artists) {
-      const artistTracks = await this.spotifyApi.searchTracks(
-        `artist:${artist.name}`,
-        {
-          limit: Math.ceil(limit * 2),
-          market: "US",
-        }
-      );
+      const {
+        body: {
+          tracks: { items },
+        },
+      } = await this.spotifyApi.searchTracks(`artist:${artist.name}`, {
+        limit: limit * 2,
+        market: "US",
+      });
 
-      for (const track of artistTracks.body.tracks.items) {
+      for (const track of items) {
         if (!seenTrackIds.has(track.id)) {
           recommendations.push(await this.getTrackFeatures(track.id));
           seenTrackIds.add(track.id);
+          if (recommendations.length >= limit) return recommendations;
         }
-        if (recommendations.length >= limit) break;
       }
-      if (recommendations.length >= limit) break;
     }
 
-    // If we need more recommendations, get recent tracks
+    // Get recent tracks if needed
     if (recommendations.length < limit) {
-      const recentTracks = await this.spotifyApi.searchTracks(
-        "year:2020-2024",
-        {
-          limit: (limit - recommendations.length) * 2,
-          market: "US",
-        }
-      );
+      const {
+        body: {
+          tracks: { items },
+        },
+      } = await this.spotifyApi.searchTracks("year:2020-2024", {
+        limit: (limit - recommendations.length) * 2,
+        market: "US",
+      });
 
-      for (const track of recentTracks.body.tracks.items) {
+      for (const track of items) {
         if (!seenTrackIds.has(track.id)) {
           recommendations.push(await this.getTrackFeatures(track.id));
-          seenTrackIds.add(track.id);
+          if (recommendations.length >= limit) break;
         }
-        if (recommendations.length >= limit) break;
       }
     }
 
@@ -129,15 +127,16 @@ class RecommenderAPI {
     const seenTrackIds = new Set();
 
     for (const genre of genres) {
-      const searchResults = await this.spotifyApi.searchTracks(
-        `genre:${genre}`,
-        {
-          limit: 2,
-          market: "US",
-        }
-      );
+      const {
+        body: {
+          tracks: { items },
+        },
+      } = await this.spotifyApi.searchTracks(`genre:${genre}`, {
+        limit: 2,
+        market: "US",
+      });
 
-      for (const track of searchResults.body.tracks.items) {
+      for (const track of items) {
         if (!seenTrackIds.has(track.id)) {
           tracks.push({
             id: track.id,
@@ -145,13 +144,12 @@ class RecommenderAPI {
             artists: track.artists.map((a) => ({ name: a.name, id: a.id })),
           });
           seenTrackIds.add(track.id);
+          if (tracks.length >= limit) return tracks;
         }
-        if (tracks.length >= limit) break;
       }
-      if (tracks.length >= limit) break;
     }
 
-    return tracks.slice(0, limit);
+    return tracks;
   }
 }
 
