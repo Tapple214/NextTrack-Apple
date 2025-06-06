@@ -1,6 +1,7 @@
 import SpotifyWebApi from "spotify-web-api-node";
 
 class RecommenderAPI {
+  // Initializes Spotify API and sets up cache
   constructor() {
     this.spotifyApi = new SpotifyWebApi({
       clientId: "c6d965d704db458abac7673400b7b007",
@@ -11,10 +12,14 @@ class RecommenderAPI {
     this.trackCache = new Map();
   }
 
+  // Gets access token using credentials
   async authenticate() {
+    // Encodes credentials to base64 for authentication
     const credentials = btoa(
       `${this.spotifyApi.getClientId()}:${this.spotifyApi.getClientSecret()}`
     );
+
+    // Sends request to Spotify API to get access token
     const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
@@ -24,20 +29,24 @@ class RecommenderAPI {
       body: "grant_type=client_credentials",
     });
 
+    // Throws error if authentication fails
     if (!response.ok)
       throw new Error(`Authentication failed: ${response.status}`);
 
+    // Sets access token and expiration time
     const { access_token, expires_in } = await response.json();
     this.spotifyApi.setAccessToken(access_token);
     this.tokenExpirationTime = Date.now() + (expires_in - 300) * 1000;
   }
 
+  // Checks if access token is valid, else fetches new token
   async ensureAuthenticated() {
     if (!this.tokenExpirationTime || Date.now() >= this.tokenExpirationTime) {
       await this.authenticate();
     }
   }
 
+  // Gets track features from Spotify API (my external data source)
   async getTrackFeatures(trackId) {
     if (this.trackCache.has(trackId)) return this.trackCache.get(trackId);
 
