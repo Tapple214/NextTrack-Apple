@@ -1,5 +1,6 @@
 import Item from "./Item.js";
 
+// Format artist name for display
 const formatArtistName = (artists) =>
   artists?.map((a) => a.name).join(", ") || "Unknown Artist";
 
