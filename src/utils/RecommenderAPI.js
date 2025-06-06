@@ -39,34 +39,23 @@ class RecommenderAPI {
     this.tokenExpirationTime = Date.now() + (expires_in - 300) * 1000;
   }
 
-  // Checks if access token is valid, else fetches new token
+  // Checks if access token is valid, else fetches new token using authenticate()
   async ensureAuthenticated() {
     if (!this.tokenExpirationTime || Date.now() >= this.tokenExpirationTime) {
       await this.authenticate();
     }
   }
 
-  // Gets track features from Spotify API (my external data source)
+  // Gets track features from Spotify API (my external data source); TODO: use audio features instead of track artist
+  // TODO: this is not really useful, just keeping it for now
   async getTrackFeatures(trackId) {
+    // Checks if track data is cached, else fetches new track data
     if (this.trackCache.has(trackId)) return this.trackCache.get(trackId);
 
     await this.ensureAuthenticated();
-    const [trackData, audioFeatures] = await Promise.all([
-      this.spotifyApi.getTrack(trackId),
-      this.spotifyApi.getAudioFeaturesForTrack(trackId).catch(() => ({
-        body: {
-          danceability: 0.5,
-          energy: 0.5,
-          valence: 0.5,
-          tempo: 120,
-          acousticness: 0.5,
-          instrumentalness: 0.5,
-          liveness: 0.5,
-          speechiness: 0.5,
-        },
-      })),
-    ]);
 
+    // Gets track data from Spotify API using trackId
+    const trackData = await this.spotifyApi.getTrack(trackId);
     const trackInfo = {
       id: trackId,
       name: trackData.body.name,
@@ -74,21 +63,27 @@ class RecommenderAPI {
         name: artist.name,
         id: artist.id,
       })),
-      ...audioFeatures.body,
     };
 
+    // Caches track data
     this.trackCache.set(trackId, trackInfo);
     return trackInfo;
   }
 
+  // Finds similar tracks to seed track; limited to 5 recs for now
   async findSimilarTracks(seedTrackId, limit = 5) {
     await this.ensureAuthenticated();
+
+    // Gets seed track features; TOOD: currently not needed just yet, just keeping it for now
     const seedTrack = await this.getTrackFeatures(seedTrackId);
+
+    // Sets up seen track ids (to avoid duplicates) and recommendations
     const seenTrackIds = new Set([seedTrackId]);
     const recommendations = [];
 
     // Get tracks by the same artist
     for (const artist of seedTrack.artists) {
+      // items = tracks by same artist of seed track
       const {
         body: {
           tracks: { items },
@@ -98,6 +93,7 @@ class RecommenderAPI {
         market: "US",
       });
 
+      // Checks items for duplicates, adds to recommendations if not seen
       for (const track of items) {
         if (!seenTrackIds.has(track.id)) {
           recommendations.push(await this.getTrackFeatures(track.id));
@@ -107,7 +103,7 @@ class RecommenderAPI {
       }
     }
 
-    // Get recent tracks if needed
+    // Get recent tracks if needed; only done if not enough similar tracks found
     if (recommendations.length < limit) {
       const {
         body: {
@@ -129,6 +125,7 @@ class RecommenderAPI {
     return recommendations.slice(0, limit);
   }
 
+  // Sample tracks/Predefined tracks categorized by genre
   async getSampleTracks(limit = 5) {
     await this.ensureAuthenticated();
     const genres = ["pop", "rock", "hip-hop", "electronic", "jazz"];
