@@ -55,7 +55,7 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
         {metrics && (
           <OverlayTrigger
             trigger="hover"
-            placement="right"
+            placement="top"
             overlay={metricsPopover}
           >
             <Button variant="link" title="Track characteristics">

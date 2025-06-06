@@ -7,6 +7,7 @@ import Tools from "./components/Tools.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 
+// TODO: Apply responsive design
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [trackInfo, setTrackInfo] = useState(null);
