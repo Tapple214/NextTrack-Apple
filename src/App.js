@@ -39,11 +39,11 @@ function App() {
   };
 
   return (
-    <div className="d-flex flex-column vh-100">
+    <div className="d-flex flex-column vh-100 overflow-hidden">
       {/* Top half of the page */}
-      <div className="h-50 d-flex">
+      <div className="h-50 d-flex overflow-hidden">
         {/* Tools Area (Left) */}
-        <Col md={6} className="d-flex flex-column h-100">
+        <Col md={6} className="d-flex flex-column h-100 overflow-hidden">
           <Tools
             setActiveView={setActiveView}
             setCurrentTrack={setCurrentTrack}
@@ -67,10 +67,10 @@ function App() {
       </div>
 
       {/* Bottom half of the page */}
-      <div className="d-flex" style={{ height: "50%" }}>
+      <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
         <Col
           md={6}
-          className="px-3 pt-3 overflow-auto  bg-success bg-opacity-10"
+          className="px-3 pt-3 overflow-auto bg-success bg-opacity-10"
         >
           <p className="fw-bold">Here are some tracks to get you started!</p>
           {sampleTracks.map((track) => (
