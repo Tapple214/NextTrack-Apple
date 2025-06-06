@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Col } from "react-bootstrap";
-import Item from "./components/Item.js";
+import Item from "./components/ItemDisplay.js";
 
 import recommenderAPI from "./utils/RecommenderAPI.js";
-import Tools from "./components/Tools.js";
+import Tools from "./components/ToolsArea.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 
