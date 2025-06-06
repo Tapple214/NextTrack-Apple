@@ -6,20 +6,11 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
   const [trackUrl, setTrackUrl] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [currentTrackId, setCurrentTrackId] = useState(null);
 
   const extractTrackId = (url) => {
-    try {
-      const urlObj = new URL(url);
-      const pathParts = urlObj.pathname.split("/");
-      const trackId = pathParts[pathParts.length - 1];
-      if (!trackId) {
-        throw new Error("No track ID found in URL");
-      }
-      return trackId;
-    } catch (err) {
-      throw new Error("Invalid Spotify URL format");
-    }
+    const match = url.match(/track\/([a-zA-Z0-9]+)/);
+    if (!match) throw new Error("Invalid Spotify track URL");
+    return match[1];
   };
 
   const handleSubmit = async (e) => {
@@ -29,21 +20,13 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
 
     try {
       const trackId = extractTrackId(trackUrl);
-      console.log("Extracted track ID:", trackId);
-      setCurrentTrackId(trackId);
-
-      const seedTrack = await recommenderAPI.getTrackFeatures(trackId);
-      console.log("Got seed track:", seedTrack.name);
-
-      const recommendations = await recommenderAPI.findSimilarTracks(trackId);
-      console.log("Got recommendations:", recommendations.length);
-
+      const [seedTrack, recommendations] = await Promise.all([
+        recommenderAPI.getTrackFeatures(trackId),
+        recommenderAPI.findSimilarTracks(trackId),
+      ]);
       onRecommendations(recommendations, seedTrack);
     } catch (err) {
-      console.error("Error in handleSubmit:", err);
-      setError(
-        err.message || "An error occurred while getting recommendations"
-      );
+      setError(err.message || "Failed to get recommendations");
     } finally {
       setLoading(false);
     }
@@ -78,7 +61,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           <p>{error}</p>
           <hr />
           <p className="mb-0">
-            Please make sure you're using a valid Spotify track URL (e.g.,
+            Please enter a valid Spotify track URL (e.g.,
             https://open.spotify.com/track/...)
           </p>
         </Alert>
