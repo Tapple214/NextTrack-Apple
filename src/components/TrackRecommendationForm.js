@@ -2,29 +2,37 @@ import React, { useState } from "react";
 import { Form, Button, Alert, Container } from "react-bootstrap";
 import recommenderAPI from "../utils/RecommenderAPI.js";
 
-const TrackRecommendationForm = ({ onRecommendations }) => {
+const TrackRecommendationForm = ({ handleRecommendations }) => {
   const [trackUrl, setTrackUrl] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Extract track ID from Spotify track URL
   const extractTrackId = (url) => {
     const match = url.match(/track\/([a-zA-Z0-9]+)/);
     if (!match) throw new Error("Invalid Spotify track URL");
     return match[1];
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      // Checks if track URL is valid
       const trackId = extractTrackId(trackUrl);
+
+      // Use util to get track features and recommendations
+      // Uses features from seed track to find similar tracks (results in "recommendations")
       const [seedTrack, recommendations] = await Promise.all([
         recommenderAPI.getTrackFeatures(trackId),
         recommenderAPI.findSimilarTracks(trackId),
       ]);
-      onRecommendations(recommendations, seedTrack);
+
+      // Pass recommendations and seed track to parent component
+      handleRecommendations(recommendations, seedTrack);
     } catch (err) {
       setError(err.message || "Failed to get recommendations");
     } finally {
@@ -33,7 +41,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
   };
 
   return (
-    <Container className="track-recommendation-form">
+    <div>
       <h2 className="text-center mb-4">Get Track Recommendations</h2>
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-4">
@@ -45,6 +53,8 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
             required
           />
         </Form.Group>
+
+        {/* Submit button */}
         <Button
           variant="success"
           type="submit"
@@ -55,6 +65,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
         </Button>
       </Form>
 
+      {/* Error message */}
       {error && (
         <Alert variant="danger" className="mt-3">
           <Alert.Heading>Error</Alert.Heading>
@@ -66,7 +77,7 @@ const TrackRecommendationForm = ({ onRecommendations }) => {
           </p>
         </Alert>
       )}
-    </Container>
+    </div>
   );
 };
 

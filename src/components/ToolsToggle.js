@@ -9,7 +9,7 @@ export default function ToolsToggle({
   return (
     <div className="d-flex h-100 justify-content-center align-items-center">
       {activeView === "form" ? (
-        <TrackRecommendationForm onRecommendations={handleRecommendations} />
+        <TrackRecommendationForm handleRecommendations={handleRecommendations} />
       ) : (
         <div className="pt-4 w-100 d-flex justify-content-center align-items-center">
           {currentTrack ? (
