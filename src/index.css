@@ -33,6 +33,13 @@ code {
   background-color: #48426d;
 }
 
+.input {
+  background-color: transparent;
+  color: #312c51;
+  border: none;
+  outline: none;
+}
+
 .btn {
   background-color: #f1c28e;
   color: #312c51;
@@ -41,6 +48,14 @@ code {
 
 .btn:hover {
   color: #f1c28e;
+}
+
+.clickable-icon {
+  color: #312c51;
+}
+
+.clickable-icon:hover {
+  background-color: #48426d;
 }
 
 #icon-btn {
