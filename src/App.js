@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Col } from "react-bootstrap";
+import { Col, Row } from "react-bootstrap";
 import Item from "./components/ItemDisplay.js";
+import { Button, Popover, OverlayTrigger } from "react-bootstrap";
 
 import recommenderAPI from "./utils/RecommenderAPI.js";
-import Tools from "./components/ToolsArea.js";
+import ToolsArea from "./components/ToolsArea.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 
@@ -44,36 +45,41 @@ function App() {
       {/* Top half of the page */}
       <div className="h-50 d-flex overflow-hidden">
         {/* Tools Area (Left) */}
-        <Col md={6} className="d-flex flex-column h-100 overflow-hidden">
-          <Tools
-            setActiveView={setActiveView}
-            setCurrentTrack={setCurrentTrack}
-          />
-
+        <ToolsArea
+          setActiveView={setActiveView}
+          setCurrentTrack={setCurrentTrack}
+        />
+        <div
+          className="sections w-50 d-flex flex-column overflow-hidden mb-2 ms-4 me-2 rounded-4"
+          style={{ marginTop: "45px" }}
+        >
           <ToolsToggle
             activeView={activeView}
             currentTrack={currentTrack}
             handleRecommendations={handleRecommendations}
           />
-        </Col>
+        </div>
 
         {/* Recommendation Results */}
-        <Col md={6} className="p-3 overflow-auto bg-success bg-opacity-10">
+        <div
+          md={6}
+          className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4"
+        >
           <RecommendationResults
             trackInfo={trackInfo}
             recommendations={recommendations}
             handlePlayTrack={handlePlayTrack}
           />
-        </Col>
+        </div>
       </div>
 
       {/* Bottom half of the page */}
       <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
-        <Col
-          md={6}
-          className="px-3 pt-3 overflow-auto bg-success bg-opacity-10"
-        >
-          <p className="fw-bold">Here are some tracks to get you started!</p>
+        {/* Predefined Tracks */}
+        <div className="sections w-50 overflow-auto mt-2 mb-4 ms-4 me-2 rounded-4">
+          <p className="fw-bold mt-3 ms-3 mb-3">
+            Here are some tracks to get you started!
+          </p>
           {sampleTracks.map((track) => (
             <Item
               key={track.id}
@@ -81,7 +87,7 @@ function App() {
               onPlayTrack={handlePlayTrack}
               displayTitle={
                 <div>
-                  {track.name}
+                  <b>{track.name}</b>
                   <br />
                   <p className="m-0" style={{ fontSize: "12px" }}>
                     {track.artists?.map((a) => a.name).join(", ") ||
@@ -92,14 +98,47 @@ function App() {
               metrics={track}
             />
           ))}
-        </Col>
-        <Col
-          md={6}
-          className="d-flex text-center justify-content-center align-items-center"
+        </div>
+
+        {/* Create Custom Playlist */}
+        <div
+          className="sections w-50 d-flex text-center justify-content-center align-items-center mt-2 ms-2 me-4 rounded-4"
+          style={{ marginBottom: "45px" }}
         >
-          This will be the area to allow users to create their customized
-          playlist (TBC)
-        </Col>
+          <div className="mx-4 px-3 rounded mb-3 rounded-2 position-absolute bottom-0 w-50">
+            <div className="d-flex justify-content-center">
+              <div
+                className="d-flex justify-content-center gap-2 rounded-3 mb-2"
+                style={{ backgroundColor: "#f1c28e", width: "80%" }}
+              >
+                <div
+                  className="p-3 mx-2 d-flex justify-content-between align-items-center w-100"
+                  style={{ color: "#312c51" }}
+                >
+                  <div className="">
+                    <i class="bi bi-pencil-square"></i>
+                    <input
+                      type="text"
+                      className="input ms-2"
+                      placeholder="Name your tracklist!"
+                    ></input>
+                  </div>
+                  <div>
+                    <Button
+                      variant="link"
+                      className="clickable-icon"
+                      id="icon-btn"
+                      // onClick={}
+                      title="Copy link to clipboard"
+                    >
+                      <i class="bi bi-upload"></i>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Manjari&display=swap");
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
-    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
-    sans-serif;
+  font-family: -apple-system, "Manjari", monospace;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
   height: 100vh;
   width: 100vw;
+  background-color: #48426d;
+  color: #f1c28e;
+  scrollbar-color: #f1c28e #312c51;
 }
 
 #root {
@@ -17,6 +20,46 @@ body {
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
-    monospace;
+  font-family: "Manjari", monospace;
+}
+
+/* App.js */
+
+.sections {
+  background-color: #312c51;
+}
+
+.items {
+  background-color: #48426d;
+}
+
+.input {
+  background-color: transparent;
+  color: #312c51;
+  border: none;
+  outline: none;
+}
+
+.btn {
+  background-color: #f1c28e;
+  color: #312c51;
+  padding-top: 10px;
+}
+
+.btn:hover {
+  color: #f1c28e;
+}
+
+.clickable-icon {
+  color: #312c51;
+}
+
+.clickable-icon:hover {
+  background-color: #48426d;
+}
+
+#icon-btn {
+  border-radius: 50%;
+  height: 40px;
+  width: 40px;
 }
