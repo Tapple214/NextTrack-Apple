@@ -30,7 +30,7 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
   );
 
   return (
-    <div className="bg-light p-2 rounded mb-1 d-flex justify-content-between">
+    <div className="bg-light p-2 rounded mb-1 d-flex justify-content-between align-items-center">
       {/* Song name and artist */}
       {displayTitle}
 
@@ -40,15 +40,23 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
         {/* Copy link to clipboard */}
         <Button
           variant="link"
+          className="btn"
+          id="icon-btn"
           onClick={handleCopyLink}
           title="Copy link to clipboard"
         >
-          <i className="bi bi-link text-success"></i>
+          <i className="bi bi-link"></i>
         </Button>
 
         {/* Play track */}
-        <Button variant="link" onClick={handlePlayTrack} title="Play track">
-          <i className="bi bi-play-fill text-success"></i>
+        <Button
+          variant="link"
+          className="btn"
+          id="icon-btn"
+          onClick={handlePlayTrack}
+          title="Play track"
+        >
+          <i className="bi bi-play-fill"></i>
         </Button>
 
         {/* Track information */}
@@ -58,8 +66,13 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
             placement="top"
             overlay={metricsPopover}
           >
-            <Button variant="link" title="Track characteristics">
-              <i className="bi bi-info-circle-fill text-success"></i>
+            <Button
+              variant="link"
+              className="btn"
+              id="icon-btn"
+              title="Track characteristics"
+            >
+              <i className="bi bi-info-circle-fill"></i>
             </Button>
           </OverlayTrigger>
         )}

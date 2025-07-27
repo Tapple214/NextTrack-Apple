@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Col } from "react-bootstrap";
+import { Col, Row } from "react-bootstrap";
 import Item from "./components/ItemDisplay.js";
 
 import recommenderAPI from "./utils/RecommenderAPI.js";
-import Tools from "./components/ToolsArea.js";
+import ToolsArea from "./components/ToolsArea.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 
@@ -40,40 +40,44 @@ function App() {
   };
 
   return (
+    
     <div className="d-flex flex-column vh-100 overflow-hidden">
+      
       {/* Top half of the page */}
       <div className="h-50 d-flex overflow-hidden">
         {/* Tools Area (Left) */}
-        <Col md={6} className="d-flex flex-column h-100 overflow-hidden">
-          <Tools
-            setActiveView={setActiveView}
-            setCurrentTrack={setCurrentTrack}
-          />
-
+        <ToolsArea
+          setActiveView={setActiveView}
+          setCurrentTrack={setCurrentTrack}
+        />
+        <div
+          className="sections w-50 d-flex flex-column overflow-hidden mb-2 ms-4 me-2 rounded-4"
+          style={{ marginTop: "45px" }}
+        >
           <ToolsToggle
             activeView={activeView}
             currentTrack={currentTrack}
             handleRecommendations={handleRecommendations}
           />
-        </Col>
+        </div>
 
         {/* Recommendation Results */}
-        <Col md={6} className="p-3 overflow-auto bg-success bg-opacity-10">
+        <div
+          md={6}
+          className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4"
+        >
           <RecommendationResults
             trackInfo={trackInfo}
             recommendations={recommendations}
             handlePlayTrack={handlePlayTrack}
           />
-        </Col>
+        </div>
       </div>
 
       {/* Bottom half of the page */}
       <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
         {/* Predefined Tracks */}
-        <Col
-          md={6}
-          className="px-3 pt-3 overflow-auto bg-success bg-opacity-10"
-        >
+        <div className="sections w-50 overflow-auto mt-2 mb-4 ms-4 me-2 rounded-4">
           <p className="fw-bold">Here are some tracks to get you started!</p>
           {sampleTracks.map((track) => (
             <Item
@@ -93,16 +97,13 @@ function App() {
               metrics={track}
             />
           ))}
-        </Col>
+        </div>
 
         {/* Create Custom Playlist */}
-        <Col
-          md={6}
-          className="d-flex text-center justify-content-center align-items-center"
-        >
+        <div className="sections w-50  d-flex text-center justify-content-center align-items-center mt-2 mb-4 ms-2 me-4 rounded-4">
           This will be the area to allow users to create their customized
           playlist (TBC)
-        </Col>
+        </div>
       </div>
     </div>
   );
