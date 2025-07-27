@@ -69,6 +69,7 @@ function App() {
 
       {/* Bottom half of the page */}
       <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
+        {/* Predefined Tracks */}
         <Col
           md={6}
           className="px-3 pt-3 overflow-auto bg-success bg-opacity-10"
@@ -93,6 +94,8 @@ function App() {
             />
           ))}
         </Col>
+
+        {/* Create Custom Playlist */}
         <Col
           md={6}
           className="d-flex text-center justify-content-center align-items-center"
