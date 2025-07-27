@@ -30,7 +30,7 @@ export default function ToolsToggle({
             </>
           ) : (
             <Card.Text className="pb-4 mb-4">
-              <p className="pb-1">Select a track to play</p>
+              <p className="mb-0">Select a track to play</p>
             </Card.Text>
           )}
         </div>

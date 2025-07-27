@@ -100,9 +100,18 @@ function App() {
         </div>
 
         {/* Create Custom Playlist */}
-        <div className="sections w-50  d-flex text-center justify-content-center align-items-center mt-2 mb-4 ms-2 me-4 rounded-4">
-          This will be the area to allow users to create their customized
-          playlist (TBC)
+        <div
+          className="sections w-50 d-flex text-center justify-content-center align-items-center mt-2 ms-2 me-4 rounded-4 bg-danger"
+          style={{ marginBottom: "45px" }}
+        >
+          <div className="mx-3 p-3 rounded mb-3 rounded-2 position-absolute bottom-0 w-50 bg-success">
+            <div
+              className="d-flex justify-content-end gap-2"
+              style={{ backgroundColor: "#f1c28e", width: "70%" }}
+            >
+              <div style={{ color: "#312c51" }}> hello </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
