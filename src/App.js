@@ -40,9 +40,7 @@ function App() {
   };
 
   return (
-    
     <div className="d-flex flex-column vh-100 overflow-hidden">
-      
       {/* Top half of the page */}
       <div className="h-50 d-flex overflow-hidden">
         {/* Tools Area (Left) */}
@@ -78,7 +76,9 @@ function App() {
       <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
         {/* Predefined Tracks */}
         <div className="sections w-50 overflow-auto mt-2 mb-4 ms-4 me-2 rounded-4">
-          <p className="fw-bold">Here are some tracks to get you started!</p>
+          <p className="fw-bold mt-3 ms-3 mb-3">
+            Here are some tracks to get you started!
+          </p>
           {sampleTracks.map((track) => (
             <Item
               key={track.id}
@@ -86,7 +86,7 @@ function App() {
               onPlayTrack={handlePlayTrack}
               displayTitle={
                 <div>
-                  {track.name}
+                  <b>{track.name}</b>
                   <br />
                   <p className="m-0" style={{ fontSize: "12px" }}>
                     {track.artists?.map((a) => a.name).join(", ") ||

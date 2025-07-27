@@ -10,6 +10,7 @@ body {
   width: 100vw;
   background-color: #48426d;
   color: #f1c28e;
+  scrollbar-color: #f1c28e #312c51;
 }
 
 #root {
@@ -26,6 +27,10 @@ code {
 
 .sections {
   background-color: #312c51;
+}
+
+.items {
+  background-color: #48426d;
 }
 
 .btn {

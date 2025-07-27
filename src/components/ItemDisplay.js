@@ -30,9 +30,9 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
   );
 
   return (
-    <div className="bg-light p-2 rounded mb-1 d-flex justify-content-between align-items-center">
+    <div className="items mx-3 p-3 rounded mb-3 d-flex justify-content-between align-items-center rounded-2">
       {/* Song name and artist */}
-      {displayTitle}
+      <span className="pe-3">{displayTitle}</span>
 
       {/* Interaction buttons */}
       {/* TODO: include delete button, etc. for different parts of the app */}
