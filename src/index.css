@@ -43,11 +43,13 @@ code {
 .btn {
   background-color: #f1c28e;
   color: #312c51;
+  border: none;
   padding-top: 10px;
 }
 
 .btn:hover {
   color: #f1c28e;
+  background-color: #48426d;
 }
 
 .clickable-icon {
@@ -62,4 +64,15 @@ code {
   border-radius: 50%;
   height: 40px;
   width: 40px;
+}
+
+.custom-placeholder::placeholder {
+  color: #f1c28e !important;
+  opacity: 0.5;
+}
+
+.no-input-outline {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
 }
