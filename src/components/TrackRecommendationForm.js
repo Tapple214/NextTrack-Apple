@@ -50,18 +50,13 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
             type="text"
             value={trackUrl}
             onChange={(e) => setTrackUrl(e.target.value)}
-            placeholder="Spotify Track URL"
+            placeholder="Enter your Spotify track URL"
             required
           />
         </Form.Group>
 
         {/* Submit button */}
-        <Button
-          variant="success"
-          type="submit"
-          disabled={loading}
-          className="w-100 py-3"
-        >
+        <Button type="submit" disabled={loading} className="w-100 py-3 btn">
           {loading ? "Loading..." : "Get Recommendations"}
         </Button>
       </Form>

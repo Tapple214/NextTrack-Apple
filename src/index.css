@@ -43,11 +43,13 @@ code {
 .btn {
   background-color: #f1c28e;
   color: #312c51;
+  border: none;
   padding-top: 10px;
 }
 
 .btn:hover {
   color: #f1c28e;
+  background-color: #48426d;
 }
 
 .clickable-icon {
