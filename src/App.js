@@ -6,6 +6,7 @@ import ToolsArea from "./components/ToolsArea.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 import CreateTrackList from "./components/createTrackList.js";
+import InfoModal from "./components/infoModal.js";
 
 // TODO: Apply responsive design
 function App() {
@@ -14,6 +15,8 @@ function App() {
   const [sampleTracks, setSampleTracks] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [activeView, setActiveView] = useState("form");
+  const [show, setShow] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
 
   useEffect(() => {
     const loadSampleTracks = async () => {
@@ -47,6 +50,8 @@ function App() {
         <ToolsArea
           setActiveView={setActiveView}
           setCurrentTrack={setCurrentTrack}
+          setShow={setShow}
+          setInfoMessage={setInfoMessage}
         />
         <div
           className="sections w-50 d-flex flex-column overflow-hidden mb-2 ms-4 me-2 rounded-4"
@@ -76,14 +81,33 @@ function App() {
       <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
         {/* Predefined Tracks */}
         <div className="sections w-50 overflow-auto mt-2 mb-4 ms-4 me-2 rounded-4">
-          <p className="fw-bold mt-3 ms-3 mb-3">
-            Here are some tracks to get you started!
-          </p>
+          <div className="d-flex justify-content-between align-items-center">
+            <p className="fw-bold mt-3 ms-3 mb-3">
+              Here are some tracks to get you started!
+            </p>
+
+            <i
+              onClick={() => {
+                setShow(true);
+                setInfoMessage(
+                  <>
+                    <h4>Sample Tracks</h4>
+                    <p>
+                      Use the current top tracks from spoitfy as your
+                      inspiration/to get started!
+                    </p>
+                  </>
+                );
+              }}
+              style={{ cursor: "pointer" }}
+              className="bi bi-info-circle-fill me-3"
+            ></i>
+          </div>
           {sampleTracks.map((track) => (
             <Item
               action="listen"
               key={track.id}
-              onDeleteTrack={() => {}}
+              trackId={track.id}
               title={`https://open.spotify.com/embed/track/${track.id}`}
               onPlayTrack={handlePlayTrack}
               displayTitle={
@@ -102,8 +126,10 @@ function App() {
         </div>
 
         {/* Create Custom Playlist */}
-        <CreateTrackList />
+        <CreateTrackList setShow={setShow} setInfoMessage={setInfoMessage} />
       </div>
+
+      <InfoModal message={infoMessage} show={show} setShow={setShow} />
     </div>
   );
 }

@@ -13,19 +13,20 @@ export default function ToolsToggle({
           handleRecommendations={handleRecommendations}
         />
       ) : (
-        <div className="pt-4 mt-4 w-100 d-flex justify-content-center align-items-center">
+        <div className="pt-4 mt-3 w-100 h-100 pb-3 d-flex justify-content-center align-items-center">
           {currentTrack ? (
             <>
               <iframe
                 src={`https://open.spotify.com/embed/track/${currentTrack.id}`}
-                width="90%"
-                height="270"
+                width="95%"
+                height="360"
                 allowtransparency="true"
                 allow="encrypted-media"
                 title={`Spotify player for ${currentTrack.name} by ${
                   currentTrack.artists?.map((a) => a.name).join(", ") ||
                   "Unknown Artist"
                 }`}
+                style={{ border: "none" }}
               ></iframe>
             </>
           ) : (

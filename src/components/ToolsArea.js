@@ -1,6 +1,11 @@
 import { Button } from "react-bootstrap";
 
-export default function ToolsArea({ setActiveView, setCurrentTrack }) {
+export default function ToolsArea({
+  setActiveView,
+  setCurrentTrack,
+  setShow,
+  setInfoMessage,
+}) {
   return (
     <div
       className="d-flex align-items-center position-absolute w-50 ps-4 fw-bold"
@@ -35,6 +40,19 @@ export default function ToolsArea({ setActiveView, setCurrentTrack }) {
         </Button>
         {/* TODO: Onboarding Information */}
         <Button
+          onClick={() => {
+            setShow(true);
+            setInfoMessage(
+              <>
+                <h4>Welcome to NextTrack</h4>
+                <p>
+                  The NextTrack app is a tool that helps you find the next track
+                  to listen to. It uses the Spotify API to get recommendations
+                  based on your listening history.
+                </p>
+              </>
+            );
+          }}
           variant="link"
           className="btn me-3"
           id="icon-btn"
