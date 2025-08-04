@@ -8,6 +8,10 @@ export default function CreateTrackList() {
   const [trackUrl, setTrackUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [trackList, setTrackList] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [sampleTracks, setSampleTracks] = useState([]);
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [activeView, setActiveView] = useState("form");
 
   // Function to extract track ID from Spotify URL
   const extractTrackId = (url) => {
@@ -48,12 +52,19 @@ export default function CreateTrackList() {
     }
   };
 
+  const handlePlayTrack = (trackId) => {
+    const allTracks = [...recommendations, ...sampleTracks];
+    const track = allTracks.find((t) => t.id === trackId);
+    setCurrentTrack(track);
+    setActiveView("player");
+  };
+
   return (
     <div
-      className="sections w-50 d-flex text-center justify-content-center mt-2 ms-2 me-4 rounded-4"
+      className="sections w-50 d-flex flex-column mt-2 ms-2 me-4 rounded-4 bg-secondary"
       style={{ marginBottom: "45px" }}
     >
-      <Form className="w-100 ps-4 pt-2 mt-1">
+      <Form className="w-100 ps-4 pt-2 mt-1 mb-2">
         <Form.Group className="d-flex align-items-center">
           <i class="bi bi-pencil-square"></i>
           <Form.Control
@@ -71,7 +82,7 @@ export default function CreateTrackList() {
           <Item
             key={track.id}
             title={`https://open.spotify.com/embed/track/${track.id}`}
-            // onPlayTrack={handlePlayTrack}
+            onPlayTrack={handlePlayTrack}
             displayTitle={
               <div>
                 <b>{track.name}</b>
@@ -82,11 +93,14 @@ export default function CreateTrackList() {
                 </p>
               </div>
             }
+            metrics={track}
           />
         ))}
 
       {/* quick actions area */}
-      <div className="mx-4 px-3 rounded mb-3 rounded-2 position-absolute bottom-0 w-50">
+      <div
+        className="me-4 px-3 mb-3 rounded-2 position-relative w-100 bg-danger"
+      >
         <div className="d-flex justify-content-center">
           <div
             className="d-flex justify-content-center gap-2 rounded-3 mb-2"
