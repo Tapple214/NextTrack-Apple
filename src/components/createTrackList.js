@@ -53,6 +53,10 @@ export default function CreateTrackList() {
     }
   };
 
+  const handleDeleteTrack = (trackId) => {
+    setTrackList((prev) => prev.filter((track) => track.id !== trackId));
+  };
+
   const handlePlayTrack = (trackId) => {
     const allTracks = [...recommendations, ...sampleTracks];
     const track = allTracks.find((t) => t.id === trackId);
@@ -157,7 +161,7 @@ export default function CreateTrackList() {
     >
       <Form className="w-100 ps-4 pt-2 mt-1 mb-2">
         <Form.Group className="d-flex align-items-center">
-          <i class="bi bi-pencil-square"></i>
+          <i className="bi bi-pencil-square"></i>
           <Form.Control
             type="text"
             placeholder="Name your tracklist!"
@@ -172,9 +176,11 @@ export default function CreateTrackList() {
 
       {trackList &&
         trackList.length > 0 &&
-        trackList.map((track) => (
+        trackList.map((track, index) => (
           <Item
-            key={track.id}
+            key={index}
+            action="create"
+            onDeleteTrack={handleDeleteTrack}
             title={`https://open.spotify.com/embed/track/${track.id}`}
             onPlayTrack={handlePlayTrack}
             displayTitle={
@@ -228,7 +234,7 @@ export default function CreateTrackList() {
                     onClick={handleAddTrack}
                     title="Copy link to clipboard"
                   >
-                    <i class="bi bi-check-lg"></i>
+                    <i className="bi bi-check-lg"></i>
                   </Button>
 
                   {trackList && trackList.length !== 0 ? (
@@ -239,7 +245,7 @@ export default function CreateTrackList() {
                       onClick={handleDownloadTracklist}
                       title="Download tracklist as JSON"
                     >
-                      <i class="bi bi-download"></i>
+                      <i className="bi bi-download"></i>
                     </Button>
                   ) : (
                     <div style={{ position: "relative" }}>
@@ -264,7 +270,7 @@ export default function CreateTrackList() {
                         id="icon-btn"
                         title="Upload tracklist JSON"
                       >
-                        <i class="bi bi-upload"></i>
+                        <i className="bi bi-upload"></i>
                       </Button>
                     </div>
                   )}

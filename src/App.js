@@ -81,7 +81,9 @@ function App() {
           </p>
           {sampleTracks.map((track) => (
             <Item
+              action="listen"
               key={track.id}
+              onDeleteTrack={() => {}}
               title={`https://open.spotify.com/embed/track/${track.id}`}
               onPlayTrack={handlePlayTrack}
               displayTitle={

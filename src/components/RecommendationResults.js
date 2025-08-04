@@ -32,6 +32,7 @@ export default function RecommendationResults({
           <div className="recommendation-list">
             {recommendations.map((track) => (
               <Item
+                action="listen"
                 key={track.id}
                 title={`https://open.spotify.com/embed/track/${track.id}`}
                 onPlayTrack={handlePlayTrack}
