@@ -72,7 +72,7 @@ function Item({
             variant="link"
             className="btn"
             id="icon-btn"
-            onClick={() => onDeleteTrack(key)}
+            onClick={() => onDeleteTrack(trackId)}
             title="Delete track"
           >
             <i className="bi bi-trash-fill"></i>

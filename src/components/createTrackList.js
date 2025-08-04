@@ -178,11 +178,12 @@ export default function CreateTrackList() {
         trackList.length > 0 &&
         trackList.map((track, index) => (
           <Item
-            key={index}
+            key={track.id}
             action="create"
             onDeleteTrack={handleDeleteTrack}
             title={`https://open.spotify.com/embed/track/${track.id}`}
             onPlayTrack={handlePlayTrack}
+            trackId={track.id}
             displayTitle={
               <div>
                 <b>{track.name}</b>
