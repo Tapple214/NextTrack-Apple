@@ -9,13 +9,46 @@ export default function CreateTrackList() {
   const [loading, setLoading] = useState(false);
   const [trackList, setTrackList] = useState([]);
 
+  // Function to extract track ID from Spotify URL
+  const extractTrackId = (url) => {
+    if (!url) return null;
+
+    // Handle different Spotify URL formats
+    const patterns = [
+      /spotify\.com\/track\/([a-zA-Z0-9]+)/,
+      /spotify\.com\/embed\/track\/([a-zA-Z0-9]+)/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) {
+        return match[1];
+      }
+    }
+
+    return null;
+  };
+
   useEffect(() => {
     handleAddTrack();
   }, []);
 
   const handleAddTrack = async () => {
-    const track = await recommenderAPI.getTrackFeatures(trackUrl);
-    setTrackList((prev) => [track, ...prev]);
+    if (!trackUrl) return;
+
+    const trackId = extractTrackId(trackUrl);
+    if (!trackId) {
+      console.error("Invalid Spotify track URL");
+      return;
+    }
+
+    try {
+      const track = await recommenderAPI.getTrackFeatures(trackId);
+      setTrackList((prev) => [track, ...prev]);
+      setTrackUrl(""); 
+    } catch (error) {
+      console.error("Error adding track:", error);
+    }
   };
 
   return (
