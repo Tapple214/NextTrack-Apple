@@ -29,13 +29,10 @@ export default function CreateTrackList() {
     return null;
   };
 
-  useEffect(() => {
-    handleAddTrack();
-  }, []);
-
   const handleAddTrack = async () => {
     if (!trackUrl) return;
 
+    // Once input has been added, check to see if the url is valid
     const trackId = extractTrackId(trackUrl);
     if (!trackId) {
       console.error("Invalid Spotify track URL");
@@ -45,7 +42,7 @@ export default function CreateTrackList() {
     try {
       const track = await recommenderAPI.getTrackFeatures(trackId);
       setTrackList((prev) => [track, ...prev]);
-      setTrackUrl(""); 
+      setTrackUrl("");
     } catch (error) {
       console.error("Error adding track:", error);
     }
