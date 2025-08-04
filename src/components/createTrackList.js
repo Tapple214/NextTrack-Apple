@@ -159,20 +159,28 @@ export default function CreateTrackList() {
       className="sections w-50 d-flex flex-column mt-2 ms-2 me-4 rounded-4 position-relative"
       style={{ marginBottom: "45px" }}
     >
-      <Form className="w-100 ps-4 pt-2 mt-1 mb-2">
-        <Form.Group className="d-flex align-items-center">
-          <i className="bi bi-pencil-square"></i>
-          <Form.Control
-            type="text"
-            placeholder="Name your tracklist!"
-            className="no-input-outline input custom-placeholder ms-2 bg-transparent border-0"
-            style={{ color: "#f1c28e" }}
-            value={tracklistName}
-            onChange={(e) => setTracklistName(e.target.value)}
-            required
-          />
-        </Form.Group>
-      </Form>
+      <div className="d-flex justify-content-between align-items-center me-3">
+        <Form className="w-100 ps-4 pt-2 mt-1 mb-2">
+          <Form.Group className="d-flex align-items-center">
+            <i className="bi bi-pencil-square"></i>
+            <Form.Control
+              type="text"
+              placeholder="Name your tracklist!"
+              className="no-input-outline input custom-placeholder ms-2 bg-transparent border-0"
+              style={{ color: "#f1c28e" }}
+              value={tracklistName}
+              onChange={(e) => setTracklistName(e.target.value)}
+              required
+            />
+          </Form.Group>
+        </Form>
+
+        <i
+          onClick={() => console.log("clicked")}
+          style={{ cursor: "pointer" }}
+          className="bi bi-info-circle-fill"
+        ></i>
+      </div>
 
       {trackList &&
         trackList.length > 0 &&

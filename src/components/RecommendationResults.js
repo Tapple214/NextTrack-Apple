@@ -34,6 +34,7 @@ export default function RecommendationResults({
               <Item
                 action="listen"
                 key={track.id}
+                trackId={track.id}
                 title={`https://open.spotify.com/embed/track/${track.id}`}
                 onPlayTrack={handlePlayTrack}
                 displayTitle={
