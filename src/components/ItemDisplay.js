@@ -1,7 +1,15 @@
 import React from "react";
 import { Button, Popover, OverlayTrigger } from "react-bootstrap";
 
-function Item({ title, onPlayTrack, displayTitle, metrics }) {
+function Item({
+  action,
+  title,
+  onPlayTrack,
+  displayTitle,
+  metrics,
+  onDeleteTrack,
+  trackId,
+}) {
   const handleCopyLink = () => {
     navigator.clipboard
       .writeText(title)
@@ -59,22 +67,33 @@ function Item({ title, onPlayTrack, displayTitle, metrics }) {
           <i className="bi bi-play-fill"></i>
         </Button>
 
-        {/* Track information */}
-        {metrics && (
-          <OverlayTrigger
-            trigger="hover"
-            placement="top"
-            overlay={metricsPopover}
+        {action === "create" && onDeleteTrack ? (
+          <Button
+            variant="link"
+            className="btn"
+            id="icon-btn"
+            onClick={() => onDeleteTrack(trackId)}
+            title="Delete track"
           >
-            <Button
-              variant="link"
-              className="btn"
-              id="icon-btn"
-              title="Track characteristics"
+            <i className="bi bi-trash-fill"></i>
+          </Button>
+        ) : (
+          metrics && (
+            <OverlayTrigger
+              trigger="hover"
+              placement="top"
+              overlay={metricsPopover}
             >
-              <i className="bi bi-info-circle-fill"></i>
-            </Button>
-          </OverlayTrigger>
+              <Button
+                variant="link"
+                className="btn"
+                id="icon-btn"
+                title="Track characteristics"
+              >
+                <i className="bi bi-info-circle-fill"></i>
+              </Button>
+            </OverlayTrigger>
+          )
         )}
       </div>
     </div>
