@@ -12,6 +12,7 @@ export default function CreateTrackList() {
   const [sampleTracks, setSampleTracks] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [activeView, setActiveView] = useState("form");
+  const [tracklistName, setTracklistName] = useState("");
 
   // Function to extract track ID from Spotify URL
   const extractTrackId = (url) => {
@@ -59,6 +60,96 @@ export default function CreateTrackList() {
     setActiveView("player");
   };
 
+  const handleDownloadTracklist = () => {
+    if (trackList.length === 0) {
+      alert("No tracks to download!");
+      return;
+    }
+
+    if (!tracklistName.trim()) {
+      alert("Please enter a name for your tracklist!");
+      return;
+    }
+
+    // Create the tracklist data object
+    const tracklistData = {
+      name: tracklistName,
+      tracks: trackList,
+      createdAt: new Date().toISOString(),
+      totalTracks: trackList.length,
+    };
+
+    // Convert to JSON string
+    const jsonString = JSON.stringify(tracklistData, null, 2);
+
+    // Create blob and download
+    const blob = new Blob([jsonString], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    // Create download link
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${tracklistName.replace(/[^a-zA-Z0-9]/g, "_")}.json`;
+
+    // Trigger download
+    document.body.appendChild(link);
+    link.click();
+
+    // Cleanup
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleUploadTracklist = (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Check if file is JSON
+    if (file.type !== "application/json" && !file.name.endsWith(".json")) {
+      alert("Please upload a JSON file!");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const tracklistData = JSON.parse(e.target.result);
+
+        // Validate the uploaded data structure
+        if (!tracklistData.tracks || !Array.isArray(tracklistData.tracks)) {
+          alert(
+            "Invalid tracklist file format. File must contain a 'tracks' array."
+          );
+          return;
+        }
+
+        // Set the tracklist name if available
+        if (tracklistData.name) {
+          setTracklistName(tracklistData.name);
+        }
+
+        // Set the tracks
+        setTrackList(tracklistData.tracks);
+
+        alert(
+          `Successfully loaded tracklist: ${
+            tracklistData.name || "Untitled"
+          } (${tracklistData.tracks.length} tracks)`
+        );
+      } catch (error) {
+        console.error("Error parsing JSON file:", error);
+        alert(
+          "Error reading the JSON file. Please make sure it's a valid tracklist file."
+        );
+      }
+    };
+
+    reader.readAsText(file);
+
+    // Reset the file input
+    event.target.value = "";
+  };
+
   return (
     <div
       className="sections w-50 d-flex flex-column mt-2 ms-2 me-4 rounded-4 position-relative"
@@ -72,6 +163,9 @@ export default function CreateTrackList() {
             placeholder="Name your tracklist!"
             className="no-input-outline input custom-placeholder ms-2 bg-transparent border-0"
             style={{ color: "#f1c28e" }}
+            value={tracklistName}
+            onChange={(e) => setTracklistName(e.target.value)}
+            required
           />
         </Form.Group>
       </Form>
@@ -137,26 +231,42 @@ export default function CreateTrackList() {
                     <i class="bi bi-check-lg"></i>
                   </Button>
 
-                  {trackList && trackList.length > 0 ? (
+                  {trackList && trackList.length !== 0 ? (
                     <Button
                       variant="link"
                       className="clickable-icon"
                       id="icon-btn"
-                      // onClick={}
-                      title="Copy link to clipboard"
+                      onClick={handleDownloadTracklist}
+                      title="Download tracklist as JSON"
                     >
                       <i class="bi bi-download"></i>
                     </Button>
                   ) : (
-                    <Button
-                      variant="link"
-                      className="clickable-icon"
-                      id="icon-btn"
-                      // onClick={}
-                      title="Copy link to clipboard"
-                    >
-                      <i class="bi bi-upload"></i>
-                    </Button>
+                    <div style={{ position: "relative" }}>
+                      <input
+                        type="file"
+                        accept=".json,application/json"
+                        onChange={handleUploadTracklist}
+                        style={{
+                          position: "absolute",
+                          opacity: 0,
+                          width: "100%",
+                          height: "100%",
+                          cursor: "pointer",
+                          top: 0,
+                          left: 0,
+                        }}
+                        title="Upload tracklist JSON"
+                      />
+                      <Button
+                        variant="link"
+                        className="clickable-icon"
+                        id="icon-btn"
+                        title="Upload tracklist JSON"
+                      >
+                        <i class="bi bi-upload"></i>
+                      </Button>
+                    </div>
                   )}
                 </div>
               </Form>
