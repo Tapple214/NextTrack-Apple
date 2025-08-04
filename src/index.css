@@ -65,3 +65,14 @@ code {
   height: 40px;
   width: 40px;
 }
+
+.custom-placeholder::placeholder {
+  color: #f1c28e !important;
+  opacity: 0.5;
+}
+
+.no-input-outline {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
