@@ -61,7 +61,7 @@ export default function CreateTrackList() {
 
   return (
     <div
-      className="sections w-50 d-flex flex-column mt-2 ms-2 me-4 rounded-4 bg-secondary"
+      className="sections w-50 d-flex flex-column mt-2 ms-2 me-4 rounded-4 position-relative"
       style={{ marginBottom: "45px" }}
     >
       <Form className="w-100 ps-4 pt-2 mt-1 mb-2">
@@ -99,11 +99,12 @@ export default function CreateTrackList() {
 
       {/* quick actions area */}
       <div
-        className="me-4 px-3 mb-3 rounded-2 position-relative w-100 bg-danger"
+        className="me-4 px-3 rounded rounded-2 position-absolute w-100"
+        style={{ bottom: -22 }}
       >
         <div className="d-flex justify-content-center">
           <div
-            className="d-flex justify-content-center gap-2 rounded-3 mb-2"
+            className="d-flex justify-content-center gap-2 rounded-3"
             style={{ backgroundColor: "#f1c28e", width: "80%" }}
           >
             <div
