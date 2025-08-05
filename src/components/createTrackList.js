@@ -1,46 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import Item from "./ItemDisplay.js";
 import recommenderAPI from "../utils/RecommenderAPI.js";
 
 export default function CreateTrackList({ setShow, setInfoMessage }) {
-  const [addTracks, setAddTracks] = useState(false);
   const [trackUrl, setTrackUrl] = useState("");
-  const [loading, setLoading] = useState(false);
   const [trackList, setTrackList] = useState([]);
-  const [recommendations, setRecommendations] = useState([]);
-  const [sampleTracks, setSampleTracks] = useState([]);
-  const [currentTrack, setCurrentTrack] = useState(null);
-  const [activeView, setActiveView] = useState("form");
   const [tracklistName, setTracklistName] = useState("");
 
-  // Function to extract track ID from Spotify URL
+  // Extract track ID from Spotify URL
   const extractTrackId = (url) => {
     if (!url) return null;
-
-    // Handle different Spotify URL formats
-    const patterns = [
-      /spotify\.com\/track\/([a-zA-Z0-9]+)/,
-      /spotify\.com\/embed\/track\/([a-zA-Z0-9]+)/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) {
-        return match[1];
-      }
-    }
-
-    return null;
+    const match = url.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
+    return match ? match[1] : null;
   };
 
   const handleAddTrack = async () => {
     if (!trackUrl) return;
 
-    // Once input has been added, check to see if the url is valid
     const trackId = extractTrackId(trackUrl);
     if (!trackId) {
-      console.error("Invalid Spotify track URL");
+      alert("Please enter a valid Spotify track URL");
       return;
     }
 
@@ -49,7 +29,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
       setTrackList((prev) => [track, ...prev]);
       setTrackUrl("");
     } catch (error) {
-      console.error("Error adding track:", error);
+      alert("Error adding track. Please check the URL and try again.");
     }
   };
 
@@ -57,14 +37,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
     setTrackList((prev) => prev.filter((track) => track.id !== trackId));
   };
 
-  const handlePlayTrack = (trackId) => {
-    const allTracks = [...recommendations, ...sampleTracks];
-    const track = allTracks.find((t) => t.id === trackId);
-    setCurrentTrack(track);
-    setActiveView("player");
-  };
-
-  const handleDownloadTracklist = () => {
+  const handleDownload = () => {
     if (trackList.length === 0) {
       alert("No tracks to download!");
       return;
@@ -75,41 +48,30 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
       return;
     }
 
-    // Create the tracklist data object
     const tracklistData = {
       name: tracklistName,
       tracks: trackList,
       createdAt: new Date().toISOString(),
-      totalTracks: trackList.length,
     };
 
-    // Convert to JSON string
-    const jsonString = JSON.stringify(tracklistData, null, 2);
-
-    // Create blob and download
-    const blob = new Blob([jsonString], { type: "application/json" });
+    const blob = new Blob([JSON.stringify(tracklistData, null, 2)], {
+      type: "application/json",
+    });
     const url = URL.createObjectURL(blob);
-
-    // Create download link
     const link = document.createElement("a");
     link.href = url;
     link.download = `${tracklistName.replace(/[^a-zA-Z0-9]/g, "_")}.json`;
-
-    // Trigger download
     document.body.appendChild(link);
     link.click();
-
-    // Cleanup
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
   };
 
-  const handleUploadTracklist = (event) => {
+  const handleUpload = (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Check if file is JSON
-    if (file.type !== "application/json" && !file.name.endsWith(".json")) {
+    if (!file.name.endsWith(".json")) {
       alert("Please upload a JSON file!");
       return;
     }
@@ -117,40 +79,22 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
-        const tracklistData = JSON.parse(e.target.result);
-
-        // Validate the uploaded data structure
-        if (!tracklistData.tracks || !Array.isArray(tracklistData.tracks)) {
-          alert(
-            "Invalid tracklist file format. File must contain a 'tracks' array."
-          );
+        const data = JSON.parse(e.target.result);
+        if (!data.tracks || !Array.isArray(data.tracks)) {
+          alert("Invalid tracklist file format.");
           return;
         }
 
-        // Set the tracklist name if available
-        if (tracklistData.name) {
-          setTracklistName(tracklistData.name);
-        }
-
-        // Set the tracks
-        setTrackList(tracklistData.tracks);
-
+        setTracklistName(data.name || "");
+        setTrackList(data.tracks);
         alert(
-          `Successfully loaded tracklist: ${
-            tracklistData.name || "Untitled"
-          } (${tracklistData.tracks.length} tracks)`
+          `Loaded: ${data.name || "Untitled"} (${data.tracks.length} tracks)`
         );
       } catch (error) {
-        console.error("Error parsing JSON file:", error);
-        alert(
-          "Error reading the JSON file. Please make sure it's a valid tracklist file."
-        );
+        alert("Error reading the JSON file.");
       }
     };
-
     reader.readAsText(file);
-
-    // Reset the file input
     event.target.value = "";
   };
 
@@ -180,11 +124,10 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
             setShow(true);
             setInfoMessage(
               <>
-                <h4>Hello</h4>
+                <h4>Create Tracklist</h4>
                 <p>
-                  In this create section, you can create your very own tracks
-                  and/or upload tracks you have already creted from this
-                  application to edit or listen to
+                  Add tracks by pasting Spotify URLs, then download or upload
+                  your tracklists.
                 </p>
               </>
             );
@@ -194,31 +137,28 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
         ></i>
       </div>
 
-      {trackList &&
-        trackList.length > 0 &&
-        trackList.map((track, index) => (
-          <Item
-            key={track.id}
-            action="create"
-            onDeleteTrack={handleDeleteTrack}
-            title={`https://open.spotify.com/embed/track/${track.id}`}
-            onPlayTrack={handlePlayTrack}
-            trackId={track.id}
-            displayTitle={
-              <div>
-                <b>{track.name}</b>
-                <br />
-                <p className="m-0" style={{ fontSize: "12px" }}>
-                  {track.artists?.map((a) => a.name).join(", ") ||
-                    "Unknown Artist"}
-                </p>
-              </div>
-            }
-            metrics={track}
-          />
-        ))}
+      {trackList.map((track, index) => (
+        <Item
+          key={track.id}
+          action="create"
+          onDeleteTrack={handleDeleteTrack}
+          title={`https://open.spotify.com/embed/track/${track.id}`}
+          trackId={track.id}
+          displayTitle={
+            <div>
+              <b>{track.name}</b>
+              <br />
+              <p className="m-0" style={{ fontSize: "12px" }}>
+                {track.artists?.map((a) => a.name).join(", ") ||
+                  "Unknown Artist"}
+              </p>
+            </div>
+          }
+          metrics={track}
+        />
+      ))}
 
-      {/* quick actions area */}
+      {/* Quick Actions */}
       <div className="w-100 position-relative h-100 d-flex justify-content-center align-items-end">
         <div
           className="px-3 rounded rounded-2 w-50 position-fixed"
@@ -241,45 +181,35 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                       type="text"
                       placeholder="Add track URL!"
                       className="no-input-outline bg-transparent border-0"
-                    ></Form.Control>
+                      onKeyPress={(e) => e.key === "Enter" && handleAddTrack()}
+                    />
                   </Form.Group>
 
                   <div className="d-flex">
                     <Button
                       variant="link"
                       className="clickable-icon"
-                      id="icon-btn"
-                      // onClick={(e) => {
-                      //   e.preventDefault();
-                      // }}
-                      // onSubmit={handleSubmit}
                       onClick={handleAddTrack}
-                      title="Copy link to clipboard"
+                      title="Add track"
                     >
                       <i className="bi bi-check-lg"></i>
                     </Button>
 
-                    {trackList && trackList.length !== 0 ? (
+                    {trackList.length > 0 ? (
                       <Button
                         variant="link"
                         className="clickable-icon"
-                        id="icon-btn"
-                        onClick={handleDownloadTracklist}
-                        title="Download tracklist as JSON"
+                        onClick={handleDownload}
+                        title="Download tracklist"
                       >
                         <i className="bi bi-download"></i>
                       </Button>
                     ) : (
-                      <div style={{ position: "relative", cursor: "pointer" }}>
+                      <div style={{ position: "relative" }}>
                         <input
-                          ref={(input) => {
-                            if (input) {
-                              input.style.pointerEvents = "none";
-                            }
-                          }}
                           type="file"
-                          accept=".json,application/json"
-                          onChange={handleUploadTracklist}
+                          accept=".json"
+                          onChange={handleUpload}
                           style={{
                             position: "absolute",
                             opacity: 0,
@@ -289,22 +219,17 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                             top: 0,
                             left: 0,
                           }}
-                          title="Upload tracklist JSON"
                         />
                         <Button
                           variant="link"
                           className="clickable-icon"
-                          id="icon-btn"
-                          title="Upload tracklist JSON"
-                          style={{ cursor: "pointer" }}
+                          title="Upload tracklist"
                           onClick={(e) => {
                             e.preventDefault();
-                            const fileInput = e.target
+                            e.target
                               .closest("div")
-                              .querySelector('input[type="file"]');
-                            if (fileInput) {
-                              fileInput.click();
-                            }
+                              .querySelector('input[type="file"]')
+                              .click();
                           }}
                         >
                           <i className="bi bi-upload"></i>
