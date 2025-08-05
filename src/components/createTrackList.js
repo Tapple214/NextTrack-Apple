@@ -165,7 +165,7 @@ export default function CreateTrackList() {
             <i className="bi bi-pencil-square"></i>
             <Form.Control
               type="text"
-              placeholder="Name your tracklist!"
+              placeholder={"Name your tracklist!" || tracklistName}
               className="no-input-outline input custom-placeholder ms-2 bg-transparent border-0"
               style={{ color: "#f1c28e" }}
               value={tracklistName}
@@ -257,7 +257,7 @@ export default function CreateTrackList() {
                       <i className="bi bi-download"></i>
                     </Button>
                   ) : (
-                    <div style={{ position: "relative" }}>
+                    <div style={{ position: "relative", cursor: "pointer" }}>
                       <input
                         type="file"
                         accept=".json,application/json"
@@ -278,6 +278,7 @@ export default function CreateTrackList() {
                         className="clickable-icon"
                         id="icon-btn"
                         title="Upload tracklist JSON"
+                        style={{ cursor: "pointer" }}
                       >
                         <i className="bi bi-upload"></i>
                       </Button>
