@@ -19,7 +19,7 @@ export default function RecommendationResults({
 
   return (
     <>
-      <div className="mb-3 bg-light p-2 rounded">
+      <div className="mb-3 p-2 rounded ps-3 pt-3">
         <strong>Added Track:</strong>
         <div>
           {trackInfo.name} by {formatArtistName(trackInfo.artists)}
@@ -28,7 +28,7 @@ export default function RecommendationResults({
 
       {recommendations.length > 0 && (
         <div className="recommendations">
-          <p className="fw-bold">Similar Tracks:</p>
+          <p className="fw-bold ps-3">Similar Tracks:</p>
           <div className="recommendation-list">
             {recommendations.map((track) => (
               <Item
