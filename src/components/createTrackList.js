@@ -3,7 +3,7 @@ import { Button, Form } from "react-bootstrap";
 import Item from "./ItemDisplay.js";
 import recommenderAPI from "../utils/RecommenderAPI.js";
 
-export default function CreateTrackList() {
+export default function CreateTrackList({ setShow, setInfoMessage }) {
   const [addTracks, setAddTracks] = useState(false);
   const [trackUrl, setTrackUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -176,7 +176,19 @@ export default function CreateTrackList() {
         </Form>
 
         <i
-          onClick={() => console.log("clicked")}
+          onClick={() => {
+            setShow(true);
+            setInfoMessage(
+              <>
+                <h4>Hello</h4>
+                <p>
+                  In this create section, you can create your very own tracks
+                  and/or upload tracks you have already creted from this
+                  application to edit or listen to
+                </p>
+              </>
+            );
+          }}
           style={{ cursor: "pointer" }}
           className="bi bi-info-circle-fill"
         ></i>
