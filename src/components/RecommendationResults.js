@@ -1,6 +1,5 @@
 import Item from "./ItemDisplay.js";
 
-// Format artist name for display
 const formatArtistName = (artists) =>
   artists?.map((a) => a.name).join(", ") || "Unknown Artist";
 
@@ -17,6 +16,26 @@ export default function RecommendationResults({
     );
   }
 
+  const renderTrackItem = (track) => (
+    <Item
+      action="listen"
+      key={track.id}
+      trackId={track.id}
+      title={`https://open.spotify.com/embed/track/${track.id}`}
+      onPlayTrack={handlePlayTrack}
+      displayTitle={
+        <div>
+          {track.name}
+          <br />
+          <p className="m-0" style={{ fontSize: "12px" }}>
+            {formatArtistName(track.artists)}
+          </p>
+        </div>
+      }
+      metrics={track}
+    />
+  );
+
   return (
     <>
       <div className="mb-3 p-2 rounded ps-3 pt-3">
@@ -30,25 +49,7 @@ export default function RecommendationResults({
         <div className="recommendations">
           <p className="fw-bold ps-3">Similar Tracks:</p>
           <div className="recommendation-list">
-            {recommendations.map((track) => (
-              <Item
-                action="listen"
-                key={track.id}
-                trackId={track.id}
-                title={`https://open.spotify.com/embed/track/${track.id}`}
-                onPlayTrack={handlePlayTrack}
-                displayTitle={
-                  <div>
-                    {track.name}
-                    <br />
-                    <p className="m-0" style={{ fontSize: "12px" }}>
-                      {formatArtistName(track.artists)}
-                    </p>
-                  </div>
-                }
-                metrics={track}
-              />
-            ))}
+            {recommendations.map(renderTrackItem)}
           </div>
         </div>
       )}
