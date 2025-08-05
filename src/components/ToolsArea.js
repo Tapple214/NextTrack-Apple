@@ -38,7 +38,6 @@ export default function ToolsArea({
         >
           <i className="bi bi-film"></i>
         </Button>
-        {/* TODO: Onboarding Information */}
         <Button
           onClick={() => {
             setShow(true);
