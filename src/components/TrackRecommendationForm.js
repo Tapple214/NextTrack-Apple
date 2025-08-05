@@ -4,6 +4,7 @@ import recommenderAPI from "../utils/RecommenderAPI.js";
 
 const TrackRecommendationForm = ({ handleRecommendations }) => {
   const [trackUrl, setTrackUrl] = useState("");
+  const [recommendationType, setRecommendationType] = useState("hybrid");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,16 +25,44 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
       // Checks if track URL is valid
       const trackId = extractTrackId(trackUrl);
 
-      // TODO: ensure that 2nd iteration of rec uses features rather than just same artist
-      // Use util to get track features and recommendations
-      // Uses features from seed track to find similar tracks (results in "recommendations")
-      const [seedTrack, recommendations] = await Promise.all([
-        recommenderAPI.getTrackFeatures(trackId),
-        recommenderAPI.findSimilarTracks(trackId),
-      ]);
+      // Get seed track info
+      const seedTrack = await recommenderAPI.getTrackFeatures(trackId);
+
+      // Get recommendations based on selected type
+      let recommendations;
+      try {
+        switch (recommendationType) {
+          case "content":
+            recommendations =
+              await recommenderAPI.getContentBasedRecommendations(trackId);
+            break;
+          case "collaborative":
+            recommendations =
+              await recommenderAPI.getCollaborativeRecommendations(trackId);
+            break;
+          case "hybrid":
+            recommendations = await recommenderAPI.getHybridRecommendations(
+              trackId
+            );
+            break;
+          case "original":
+          default:
+            recommendations = await recommenderAPI.findSimilarTracks(trackId);
+            break;
+        }
+      } catch (error) {
+        console.warn(
+          "Primary recommendation method failed, using robust fallback:",
+          error
+        );
+        // Use robust fallback if primary method fails
+        recommendations = await recommenderAPI.getRobustRecommendations(
+          trackId
+        );
+      }
 
       // Pass recommendations and seed track to parent component
-      handleRecommendations(recommendations, seedTrack);
+      handleRecommendations(recommendations, seedTrack, recommendationType);
     } catch (err) {
       setError(err.message || "Failed to get recommendations");
     } finally {
@@ -45,6 +74,29 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
     <div>
       <h2 className="text-center mb-4">Get Track Recommendations</h2>
       <Form onSubmit={handleSubmit}>
+        <Form.Group className="mb-3">
+          <Form.Label>Recommendation System</Form.Label>
+          <Form.Select
+            value={recommendationType}
+            onChange={(e) => setRecommendationType(e.target.value)}
+          >
+            <option value="hybrid">Hybrid System (Recommended)</option>
+            <option value="content">Content-Based Filtering</option>
+            <option value="collaborative">Collaborative Filtering</option>
+            <option value="original">Original (Artist-Based)</option>
+          </Form.Select>
+          <Form.Text className="text-muted">
+            {recommendationType === "hybrid" &&
+              "Combines audio features and user behavior patterns for the most accurate recommendations"}
+            {recommendationType === "content" &&
+              "Recommends based on similar audio features (tempo, energy, danceability, etc.)"}
+            {recommendationType === "collaborative" &&
+              "Recommends based on what similar users like"}
+            {recommendationType === "original" &&
+              "Recommends tracks by the same artist"}
+          </Form.Text>
+        </Form.Group>
+
         <Form.Group className="mb-4">
           <Form.Control
             type="text"

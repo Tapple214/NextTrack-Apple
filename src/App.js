@@ -12,6 +12,7 @@ import InfoModal from "./components/infoModal.js";
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [trackInfo, setTrackInfo] = useState(null);
+  const [recommendationType, setRecommendationType] = useState("hybrid");
   const [sampleTracks, setSampleTracks] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [activeView, setActiveView] = useState("form");
@@ -30,9 +31,14 @@ function App() {
     loadSampleTracks();
   }, []);
 
-  const handleRecommendations = (newRecommendations, newTrackInfo) => {
+  const handleRecommendations = (
+    newRecommendations,
+    newTrackInfo,
+    newRecommendationType
+  ) => {
     setRecommendations(newRecommendations);
     setTrackInfo(newTrackInfo);
+    setRecommendationType(newRecommendationType || "hybrid");
   };
 
   const handlePlayTrack = (trackId) => {
@@ -72,6 +78,7 @@ function App() {
           <RecommendationResults
             trackInfo={trackInfo}
             recommendations={recommendations}
+            recommendationType={recommendationType}
             handlePlayTrack={handlePlayTrack}
           />
         </div>
