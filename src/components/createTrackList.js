@@ -259,6 +259,11 @@ export default function CreateTrackList() {
                   ) : (
                     <div style={{ position: "relative", cursor: "pointer" }}>
                       <input
+                        ref={(input) => {
+                          if (input) {
+                            input.style.pointerEvents = "none";
+                          }
+                        }}
                         type="file"
                         accept=".json,application/json"
                         onChange={handleUploadTracklist}
@@ -279,6 +284,15 @@ export default function CreateTrackList() {
                         id="icon-btn"
                         title="Upload tracklist JSON"
                         style={{ cursor: "pointer" }}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          const fileInput = e.target
+                            .closest("div")
+                            .querySelector('input[type="file"]');
+                          if (fileInput) {
+                            fileInput.click();
+                          }
+                        }}
                       >
                         <i className="bi bi-upload"></i>
                       </Button>
