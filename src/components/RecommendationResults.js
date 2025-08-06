@@ -18,7 +18,10 @@ export default function RecommendationResults({
   }
 
   return (
-    <>
+    <div
+      md={6}
+      className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4"
+    >
       <div className="mb-3 p-2 rounded ps-3 pt-3">
         <strong>Added Track:</strong>
         <div>
@@ -52,6 +55,6 @@ export default function RecommendationResults({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

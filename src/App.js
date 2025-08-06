@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Item from "./components/ItemDisplay.js";
 
 import recommenderAPI from "./utils/RecommenderAPI.js";
 import ToolsArea from "./components/ToolsArea.js";
@@ -7,6 +6,7 @@ import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 import CreateTrackList from "./components/createTrackList.js";
 import InfoModal from "./components/infoModal.js";
+import PredefinedTracklist from "./components/predefinedTracklist.js";
 
 // TODO: Apply responsive design
 function App() {
@@ -53,16 +53,12 @@ function App() {
           setShow={setShow}
           setInfoMessage={setInfoMessage}
         />
-        <div
-          className="sections w-50 d-flex flex-column overflow-hidden mb-2 ms-4 me-2 rounded-4"
-          style={{ marginTop: "45px" }}
-        >
-          <ToolsToggle
-            activeView={activeView}
-            currentTrack={currentTrack}
-            handleRecommendations={handleRecommendations}
-          />
-        </div>
+
+        <ToolsToggle
+          activeView={activeView}
+          currentTrack={currentTrack}
+          handleRecommendations={handleRecommendations}
+        />
 
         {/* Recommendation Results */}
         <div
@@ -80,50 +76,12 @@ function App() {
       {/* Bottom half of the page */}
       <div className="d-flex overflow-hidden" style={{ height: "50%" }}>
         {/* Predefined Tracks */}
-        <div className="sections w-50 overflow-auto mt-2 mb-4 ms-4 me-2 rounded-4">
-          <div className="d-flex justify-content-between align-items-center">
-            <p className="fw-bold mt-3 ms-3 mb-3">
-              Here are some tracks to get you started!
-            </p>
-
-            <i
-              onClick={() => {
-                setShow(true);
-                setInfoMessage(
-                  <>
-                    <h4>Sample Tracks</h4>
-                    <p>
-                      Use the current top tracks from spoitfy as your
-                      inspiration/to get started!
-                    </p>
-                  </>
-                );
-              }}
-              style={{ cursor: "pointer" }}
-              className="bi bi-info-circle-fill me-3"
-            ></i>
-          </div>
-          {sampleTracks.map((track) => (
-            <Item
-              action="listen"
-              key={track.id}
-              trackId={track.id}
-              title={`https://open.spotify.com/embed/track/${track.id}`}
-              onPlayTrack={handlePlayTrack}
-              displayTitle={
-                <div>
-                  <b>{track.name}</b>
-                  <br />
-                  <p className="m-0" style={{ fontSize: "12px" }}>
-                    {track.artists?.map((a) => a.name).join(", ") ||
-                      "Unknown Artist"}
-                  </p>
-                </div>
-              }
-              metrics={track}
-            />
-          ))}
-        </div>
+        <PredefinedTracklist
+          setShow={setShow}
+          setInfoMessage={setInfoMessage}
+          sampleTracks={sampleTracks}
+          handlePlayTrack={handlePlayTrack}
+        />
 
         {/* Create Custom Playlist */}
         <CreateTrackList setShow={setShow} setInfoMessage={setInfoMessage} />
