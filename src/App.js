@@ -45,7 +45,7 @@ function App() {
   return (
     <div className="d-flex flex-column vh-100 overflow-hidden">
       {/* Top half of the page */}
-      <div className="h-50 d-flex overflow-hidden">
+      <div className="h-50 d-flex flex-sm-column flex--column  flex-lg-row overflow-hidden">
         {/* Tools Area (Left) */}
         <ToolsArea
           setActiveView={setActiveView}
@@ -54,19 +54,25 @@ function App() {
           setInfoMessage={setInfoMessage}
         />
 
-        <ToolsToggle
-          activeView={activeView}
-          currentTrack={currentTrack}
-          handleRecommendations={handleRecommendations}
-        />
+        <div
+          className="sections w-50 d-flex flex-column overflow-hidden mb-2 ms-4 me-2 rounded-4"
+          style={{ marginTop: "45px" }}
+        >
+          <ToolsToggle
+            activeView={activeView}
+            currentTrack={currentTrack}
+            handleRecommendations={handleRecommendations}
+          />
+        </div>
 
         {/* Recommendation Results */}
-
-        <RecommendationResults
-          trackInfo={trackInfo}
-          recommendations={recommendations}
-          handlePlayTrack={handlePlayTrack}
-        />
+        <div className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4">
+          <RecommendationResults
+            trackInfo={trackInfo}
+            recommendations={recommendations}
+            handlePlayTrack={handlePlayTrack}
+          />
+        </div>
       </div>
 
       {/* Bottom half of the page */}

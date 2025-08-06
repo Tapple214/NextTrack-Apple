@@ -8,10 +8,7 @@ export default function ToolsToggle({
 }) {
   return (
     <>
-      <div
-        className="sections w-50 d-flex flex-column overflow-hidden mb-2 ms-4 me-2 rounded-4"
-        style={{ marginTop: "45px" }}
-      >
+      
         <div className="d-flex h-100 justify-content-center align-items-center">
           {activeView === "form" ? (
             <TrackRecommendationForm
@@ -42,7 +39,7 @@ export default function ToolsToggle({
             </div>
           )}
         </div>
-      </div>
+
     </>
   );
 }
