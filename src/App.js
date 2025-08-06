@@ -61,16 +61,12 @@ function App() {
         />
 
         {/* Recommendation Results */}
-        <div
-          md={6}
-          className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4"
-        >
-          <RecommendationResults
-            trackInfo={trackInfo}
-            recommendations={recommendations}
-            handlePlayTrack={handlePlayTrack}
-          />
-        </div>
+
+        <RecommendationResults
+          trackInfo={trackInfo}
+          recommendations={recommendations}
+          handlePlayTrack={handlePlayTrack}
+        />
       </div>
 
       {/* Bottom half of the page */}
