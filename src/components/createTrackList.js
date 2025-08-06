@@ -111,7 +111,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
               type="text"
               placeholder={"Name your tracklist!" || tracklistName}
               className="no-input-outline input custom-placeholder ms-2 bg-transparent border-0"
-              style={{ color: "#f1c28e" }}
+              style={{ color: "#312c51" }}
               value={tracklistName}
               onChange={(e) => setTracklistName(e.target.value)}
               required
@@ -165,10 +165,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
           style={{ bottom: 22 }}
         >
           <div className="d-flex justify-content-center">
-            <div
-              className="d-flex justify-content-center gap-2 rounded-3"
-              style={{ backgroundColor: "#f1c28e", width: "80%" }}
-            >
+            <div className="quick-actions d-flex justify-content-center gap-2 rounded-3">
               <div
                 className="p-1 mx-2 d-flex justify-content-between align-items-center w-100"
                 style={{ color: "#312c51" }}
@@ -180,15 +177,15 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                       onChange={(e) => setTrackUrl(e.target.value)}
                       type="text"
                       placeholder="Add track URL!"
-                      className="no-input-outline bg-transparent border-0"
+                      className="no-input-outline bg-transparent border-0 text-white"
                       onKeyPress={(e) => e.key === "Enter" && handleAddTrack()}
                     />
                   </Form.Group>
 
                   <div className="d-flex">
                     <Button
-                      variant="link"
-                      className="clickable-icon"
+                      // variant="link"
+                      id="icon-btn"
                       onClick={handleAddTrack}
                       title="Add track"
                     >
@@ -197,8 +194,9 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
 
                     {trackList.length > 0 ? (
                       <Button
-                        variant="link"
-                        className="clickable-icon"
+                        // variant="link"
+                        id="icon-btn"
+                        // className="clickable-icon"
                         onClick={handleDownload}
                         title="Download tracklist"
                       >
@@ -221,8 +219,9 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                           }}
                         />
                         <Button
-                          variant="link"
-                          className="clickable-icon"
+                          // variant="link"
+                          // className="clickable-icon
+                          id="icon-btn"
                           title="Upload tracklist"
                           onClick={(e) => {
                             e.preventDefault();

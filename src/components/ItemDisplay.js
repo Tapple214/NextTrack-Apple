@@ -72,16 +72,16 @@ function Item({
         <span className="pe-3">{displayTitle}</span>
 
         {/* Action Buttons */}
-        <div className="d-flex justify-content-end gap-2">
+        <div className="d-flex justify-content-center align-items-center gap-2">
           {/* Copy Link */}
           <Button
             variant="link"
-            className="btn"
+            // className="btn"
             id="icon-btn"
             onClick={handleCopyLink}
             title="Copy link to clipboard"
           >
-            <i className="bi bi-link"></i>
+            <i className="bi bi-link mb-0"></i>
           </Button>
 
           {/* Play Track */}

@@ -8,9 +8,9 @@ body {
   overflow: hidden;
   height: 100vh;
   width: 100vw;
-  background-color: #48426d;
-  color: #f1c28e;
-  scrollbar-color: #f1c28e #312c51;
+  background: linear-gradient(to bottom, #998edf, #ee8bed);
+  color: #312c51;
+  scrollbar-color: #312c51 #312c51;
 }
 
 #root {
@@ -26,11 +26,12 @@ code {
 /* App.js */
 
 .sections {
-  background-color: #312c51;
+  background-color: rgba(255, 255, 255, 0.168);
+  border: 2px solid rgba(255, 255, 255, 0.05);
 }
 
 .items {
-  background-color: #48426d;
+  background-color: rgba(255, 255, 255, 0.168);
 }
 
 .input {
@@ -41,33 +42,34 @@ code {
 }
 
 .btn {
-  background-color: #f1c28e;
-  color: #312c51;
+  background-color: #312c51;
+  color: rgba(255, 255, 255, 0.905);
   border: none;
-  padding-top: 10px;
+  /* padding-top: 10px; */
 }
 
 .btn:hover {
-  color: #f1c28e;
-  background-color: #48426d;
-}
-
-.clickable-icon {
+  background-color: rgba(255, 255, 255, 0.905);
   color: #312c51;
 }
 
-.clickable-icon:hover {
-  background-color: #48426d;
+#icon-btn {
+  width: 30px;
+  height: 30px;
+  justify-content: center;
+
+  border-radius: 50%;
+  display: flex;
 }
 
-#icon-btn {
-  border-radius: 50%;
-  height: 40px;
-  width: 40px;
+.quick-actions {
+  background-color: #312c51;
+  color: rgba(255, 255, 255, 0.905);
+  width: 80%;
 }
 
 .custom-placeholder::placeholder {
-  color: #f1c28e !important;
+  color: #312c51 !important;
   opacity: 0.5;
 }
 
@@ -75,4 +77,15 @@ code {
   outline: none !important;
   box-shadow: none !important;
   border-color: transparent !important;
+}
+
+::placeholder {
+  color: rgba(255, 255, 255, 0.905) !important;
+  opacity: 0.7;
+}
+
+/* For specific input with class */
+.no-input-outline::placeholder {
+  color: rgba(255, 255, 255, 0.905) !important;
+  opacity: 0.7;
 }
