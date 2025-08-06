@@ -11,7 +11,7 @@ export default function RecommendationResults({
 }) {
   if (!trackInfo) {
     return (
-      <div className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4">
+      <div className="sections w-50 overflow-auto mt-4 mb-2 ms-2 me-4 rounded-4 d-flex justify-content-center align-items-center text-center">
         Your results will show up here once you get your song recommendations!
       </div>
     );
