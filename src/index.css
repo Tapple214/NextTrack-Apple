@@ -41,12 +41,6 @@ code {
   border: 2px solid rgba(255, 255, 255, 0.05);
 }
 
-.tools-area-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
 .items {
   background-color: rgba(255, 255, 255, 0.168);
 }
@@ -199,15 +193,6 @@ code {
 }
 
 /* Recommendation styles */
-.recommendations {
-  margin-top: 20px;
-}
-
-.recommendation-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
 .mobile-tools-content {
   width: 100%;
 }
