@@ -189,6 +189,93 @@ code {
   flex: 1;
 }
 
+/* Mobile component specific styles */
+.mobile-tools-area {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.mobile-tools-content {
+  width: 100%;
+}
+
+.mobile-tools-content h3 {
+  color: #312c51;
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.mobile-tools-toggle {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  flex: 1;
+  min-height: 200px;
+}
+
+.mobile-predefined-tracks {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.mobile-predefined-content {
+  width: 100%;
+}
+
+.mobile-predefined-content h5 {
+  color: #312c51;
+  font-weight: bold;
+}
+
+.mobile-tracks-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.mobile-create-tracklist {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.mobile-create-content {
+  width: 100%;
+}
+
+.mobile-create-content h5 {
+  color: #312c51;
+  font-weight: bold;
+}
+
+.mobile-tracklist-items {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.mobile-quick-actions {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.mobile-recommendation-results {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  flex: 1;
+  overflow-y: auto;
+}
+
 /* Desktop Layout */
 .desktop-layout {
   height: 100vh;
@@ -214,6 +301,14 @@ code {
     width: 10px;
     height: 10px;
   }
+
+  .mobile-tools-area,
+  .mobile-tools-toggle,
+  .mobile-predefined-tracks,
+  .mobile-create-tracklist,
+  .mobile-recommendation-results {
+    padding: 10px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -227,5 +322,13 @@ code {
 
   .section-title {
     font-size: 1.3rem;
+  }
+
+  .mobile-tools-area,
+  .mobile-tools-toggle,
+  .mobile-predefined-tracks,
+  .mobile-create-tracklist,
+  .mobile-recommendation-results {
+    padding: 8px;
   }
 }

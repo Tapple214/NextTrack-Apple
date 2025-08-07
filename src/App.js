@@ -20,10 +20,8 @@ function App() {
   const [currentSection, setCurrentSection] = useState(0);
 
   // Refs for each section
-  const toolsAreaRef = useRef(null);
-  const recommendationRef = useRef(null);
-  const predefinedRef = useRef(null);
-  const createPlaylistRef = useRef(null);
+  const toolsAndPredefinedRef = useRef(null);
+  const createAndRecommendationsRef = useRef(null);
 
   useEffect(() => {
     const loadSampleTracks = async () => {
@@ -51,12 +49,7 @@ function App() {
 
   // Scroll to specific section
   const scrollToSection = (sectionIndex) => {
-    const sections = [
-      toolsAreaRef,
-      recommendationRef,
-      predefinedRef,
-      createPlaylistRef,
-    ];
+    const sections = [toolsAndPredefinedRef, createAndRecommendationsRef];
     const targetSection = sections[sectionIndex];
 
     if (targetSection?.current) {
@@ -70,12 +63,7 @@ function App() {
 
   // Handle scroll events to update current section
   const handleScroll = () => {
-    const sections = [
-      toolsAreaRef,
-      recommendationRef,
-      predefinedRef,
-      createPlaylistRef,
-    ];
+    const sections = [toolsAndPredefinedRef, createAndRecommendationsRef];
 
     sections.forEach((sectionRef, index) => {
       if (sectionRef?.current) {
@@ -106,14 +94,6 @@ function App() {
         <div
           className={`nav-dot ${currentSection === 1 ? "active" : ""}`}
           onClick={() => scrollToSection(1)}
-        ></div>
-        <div
-          className={`nav-dot ${currentSection === 2 ? "active" : ""}`}
-          onClick={() => scrollToSection(2)}
-        ></div>
-        <div
-          className={`nav-dot ${currentSection === 3 ? "active" : ""}`}
-          onClick={() => scrollToSection(3)}
         ></div>
       </div>
 
@@ -165,61 +145,65 @@ function App() {
         </div>
       </div>
 
-      {/* Mobile Layout - Full Page Sections */}
+      {/* Mobile Layout - 2 Full Page Sections */}
       <div className="mobile-layout d-sm-none">
-        {/* Section 1: Tools Area */}
-        <section ref={toolsAreaRef} className="mobile-section">
+        {/* Section 1: Tools Area + Tools Toggle + Predefined Tracks */}
+        <section ref={toolsAndPredefinedRef} className="mobile-section">
           <div className="section-content">
-            <h2 className="section-title">Tools</h2>
-            <ToolsArea
-              setActiveView={setActiveView}
-              setCurrentTrack={setCurrentTrack}
-              setShow={setShow}
-              setInfoMessage={setInfoMessage}
-            />
-          </div>
-        </section>
+            <h2 className="section-title">Tools & Predefined Tracks</h2>
 
-        {/* Section 2: Recommendation Form & Results */}
-        <section ref={recommendationRef} className="mobile-section">
-          <div className="section-content">
-            <h2 className="section-title">Get Recommendations</h2>
-            <div className="mobile-recommendation-container">
+            {/* Tools Area */}
+            <div className="mobile-tools-area mb-4">
+              <ToolsArea
+                setActiveView={setActiveView}
+                setCurrentTrack={setCurrentTrack}
+                setShow={setShow}
+                setInfoMessage={setInfoMessage}
+              />
+            </div>
+
+            {/* Tools Toggle */}
+            <div className="mobile-tools-toggle mb-4">
               <ToolsToggle
                 activeView={activeView}
                 currentTrack={currentTrack}
                 handleRecommendations={handleRecommendations}
               />
-              <RecommendationResults
-                trackInfo={trackInfo}
-                recommendations={recommendations}
+            </div>
+
+            {/* Predefined Tracks */}
+            <div className="mobile-predefined-tracks">
+              <PredefinedTracklist
+                setShow={setShow}
+                setInfoMessage={setInfoMessage}
+                sampleTracks={sampleTracks}
                 handlePlayTrack={handlePlayTrack}
               />
             </div>
           </div>
         </section>
 
-        {/* Section 3: Predefined Tracks */}
-        <section ref={predefinedRef} className="mobile-section">
+        {/* Section 2: Create Track List + Recommendation Results */}
+        <section ref={createAndRecommendationsRef} className="mobile-section">
           <div className="section-content">
-            <h2 className="section-title">Predefined Tracks</h2>
-            <PredefinedTracklist
-              setShow={setShow}
-              setInfoMessage={setInfoMessage}
-              sampleTracks={sampleTracks}
-              handlePlayTrack={handlePlayTrack}
-            />
-          </div>
-        </section>
+            <h2 className="section-title">Create & Recommendations</h2>
 
-        {/* Section 4: Create Custom Playlist */}
-        <section ref={createPlaylistRef} className="mobile-section">
-          <div className="section-content">
-            <h2 className="section-title">Create Playlist</h2>
-            <CreateTrackList
-              setShow={setShow}
-              setInfoMessage={setInfoMessage}
-            />
+            {/* Create Track List */}
+            <div className="mobile-create-tracklist mb-4">
+              <CreateTrackList
+                setShow={setShow}
+                setInfoMessage={setInfoMessage}
+              />
+            </div>
+
+            {/* Recommendation Results */}
+            <div className="mobile-recommendation-results">
+              <RecommendationResults
+                trackInfo={trackInfo}
+                recommendations={recommendations}
+                handlePlayTrack={handlePlayTrack}
+              />
+            </div>
           </div>
         </section>
       </div>
