@@ -76,7 +76,6 @@ function App() {
       predefinedRef,
       createPlaylistRef,
     ];
-    const scrollPosition = window.scrollY + window.innerHeight / 2;
 
     sections.forEach((sectionRef, index) => {
       if (sectionRef?.current) {
@@ -99,7 +98,7 @@ function App() {
   return (
     <div className="app-container">
       {/* Mobile Navigation Dots */}
-      <div className="mobile-nav-dots d-sm-none">
+      <div className="mobile-nav-dots d-sm-none h-100 d-flex justify-content-center align-items-center">
         <div
           className={`nav-dot ${currentSection === 0 ? "active" : ""}`}
           onClick={() => scrollToSection(0)}
