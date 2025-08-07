@@ -246,7 +246,20 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
       {/* Mobile Layout */}
       <div className="d-sm-none mobile-create-content">
         <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0 fw-bold">Create Playlist</h5>
+          <Form>
+            <Form.Group className="d-flex align-items-center">
+              <i className="bi bi-pencil-square me-2"></i>
+              <Form.Control
+                type="text"
+                placeholder="Name your tracklist!"
+                className="no-input-outline input custom-placeholder bg-transparent border-0"
+                style={{ color: "#312c51" }}
+                value={tracklistName}
+                onChange={(e) => setTracklistName(e.target.value)}
+                required
+              />
+            </Form.Group>
+          </Form>
           <i
             onClick={() => {
               setShow(true);
@@ -264,21 +277,6 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
             className="bi bi-info-circle-fill"
           ></i>
         </div>
-
-        <Form className="mb-3">
-          <Form.Group className="d-flex align-items-center">
-            <i className="bi bi-pencil-square me-2"></i>
-            <Form.Control
-              type="text"
-              placeholder="Name your tracklist!"
-              className="no-input-outline input custom-placeholder bg-transparent border-0"
-              style={{ color: "#312c51" }}
-              value={tracklistName}
-              onChange={(e) => setTracklistName(e.target.value)}
-              required
-            />
-          </Form.Group>
-        </Form>
 
         <div className="mobile-tracklist-items mb-3">
           {trackList.map((track) => (
@@ -304,59 +302,64 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
         </div>
 
         {/* Mobile Quick Actions */}
-        <div className="mobile-quick-actions">
-          <Form className="d-flex align-items-center gap-2">
-            <Form.Control
-              value={trackUrl}
-              onChange={(e) => setTrackUrl(e.target.value)}
-              type="text"
-              placeholder="Add track URL!"
-              className="no-input-outline bg-transparent border-0 text-white flex-grow-1"
-              onKeyPress={(e) => e.key === "Enter" && handleAddTrack()}
-            />
-            <Button id="icon-btn" onClick={handleAddTrack} title="Add track">
-              <i className="bi bi-check-lg"></i>
-            </Button>
-            {trackList.length > 0 ? (
-              <Button
-                id="icon-btn"
-                onClick={handleDownload}
-                title="Download tracklist"
-              >
-                <i className="bi bi-download"></i>
+        <div className=" d-flex justify-content-center gap-2">
+          <div
+            className="quick-actions position-fixed rounded-3 pe-2"
+            style={{ bottom: 22 }}
+          >
+            <Form className="d-flex align-items-center gap-2">
+              <Form.Control
+                value={trackUrl}
+                onChange={(e) => setTrackUrl(e.target.value)}
+                type="text"
+                placeholder="Add track URL!"
+                className="no-input-outline bg-transparent border-0 text-white flex-grow-1"
+                onKeyPress={(e) => e.key === "Enter" && handleAddTrack()}
+              />
+              <Button id="icon-btn" onClick={handleAddTrack} title="Add track">
+                <i className="bi bi-check-lg"></i>
               </Button>
-            ) : (
-              <div style={{ position: "relative" }}>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleUpload}
-                  style={{
-                    position: "absolute",
-                    opacity: 0,
-                    width: "100%",
-                    height: "100%",
-                    cursor: "pointer",
-                    top: 0,
-                    left: 0,
-                  }}
-                />
+              {trackList.length > 0 ? (
                 <Button
                   id="icon-btn"
-                  title="Upload tracklist"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.target
-                      .closest("div")
-                      .querySelector('input[type="file"]')
-                      .click();
-                  }}
+                  onClick={handleDownload}
+                  title="Download tracklist"
                 >
-                  <i className="bi bi-upload"></i>
+                  <i className="bi bi-download"></i>
                 </Button>
-              </div>
-            )}
-          </Form>
+              ) : (
+                <div style={{ position: "relative" }}>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleUpload}
+                    style={{
+                      position: "absolute",
+                      opacity: 0,
+                      width: "100%",
+                      height: "100%",
+                      cursor: "pointer",
+                      top: 0,
+                      left: 0,
+                    }}
+                  />
+                  <Button
+                    id="icon-btn"
+                    title="Upload tracklist"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.target
+                        .closest("div")
+                        .querySelector('input[type="file"]')
+                        .click();
+                    }}
+                  >
+                    <i className="bi bi-upload"></i>
+                  </Button>
+                </div>
+              )}
+            </Form>
+          </div>
         </div>
       </div>
     </>
