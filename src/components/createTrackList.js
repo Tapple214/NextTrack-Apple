@@ -11,8 +11,20 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
   // Extract track ID from Spotify URL
   const extractTrackId = (url) => {
     if (!url) return null;
-    const match = url.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
-    return match ? match[1] : null;
+
+    // Handle various Spotify URL formats
+    const patterns = [
+      /(?:open\.)?spotify\.com\/track\/([a-zA-Z0-9]+)/, // https://open.spotify.com/track/... or https://spotify.com/track/...
+      /spotify:track:([a-zA-Z0-9]+)/, // spotify:track:... format
+      /track\/([a-zA-Z0-9]+)/, // Just track/... format
+    ];
+
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+
+    return null;
   };
 
   const handleAddTrack = async () => {
@@ -20,7 +32,9 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
 
     const trackId = extractTrackId(trackUrl);
     if (!trackId) {
-      alert("Please enter a valid Spotify track URL");
+      alert(
+        "Please enter a valid Spotify track URL.\n\nValid formats:\n• https://open.spotify.com/track/TRACK_ID\n• https://spotify.com/track/TRACK_ID\n• spotify:track:TRACK_ID"
+      );
       return;
     }
 
@@ -29,7 +43,12 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
       setTrackList((prev) => [track, ...prev]);
       setTrackUrl("");
     } catch (error) {
-      alert("Error adding track. Please check the URL and try again.");
+      console.error("Error adding track:", error);
+      alert(
+        `Error adding track: ${
+          error.message || "Please check the URL and try again."
+        }`
+      );
     }
   };
 
@@ -178,7 +197,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                         value={trackUrl}
                         onChange={(e) => setTrackUrl(e.target.value)}
                         type="text"
-                        placeholder="Add track URL!"
+                        placeholder="Paste Spotify track URL here..."
                         className="no-input-outline bg-transparent border-0 text-white"
                         onKeyPress={(e) =>
                           e.key === "Enter" && handleAddTrack()
@@ -312,7 +331,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                 value={trackUrl}
                 onChange={(e) => setTrackUrl(e.target.value)}
                 type="text"
-                placeholder="Add track URL!"
+                placeholder="Paste Spotify track URL here..."
                 className="no-input-outline bg-transparent border-0 text-white flex-grow-1"
                 onKeyPress={(e) => e.key === "Enter" && handleAddTrack()}
               />
