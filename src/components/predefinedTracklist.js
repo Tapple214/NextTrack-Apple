@@ -55,9 +55,9 @@ export default function PredefinedTracklist({
       </div>
 
       {/* Mobile Layout */}
-      <div className="d-sm-none mobile-predefined-content">
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0 fw-bold">Sample Tracks</h5>
+      <div className="d-sm-none">
+        <div className="d-flex justify-content-between align-items-center">
+          <h5 className="fw-bold my-2">Sample Tracks</h5>
           <i
             onClick={() => {
               setShow(true);
@@ -75,7 +75,7 @@ export default function PredefinedTracklist({
             className="bi bi-info-circle-fill"
           ></i>
         </div>
-        <div className="mobile-tracks-list">
+        <div>
           {sampleTracks.map((track) => (
             <Item
               action="listen"

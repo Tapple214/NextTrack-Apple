@@ -146,21 +146,19 @@ function App() {
       </div>
 
       {/* Mobile Layout - 2 Full Page Sections */}
-      <div className="mobile-layout d-sm-none">
+      <div className="d-sm-none">
         {/* Section 1: Tools Area + Tools Toggle + Predefined Tracks */}
         <section ref={toolsAndPredefinedRef} className="mobile-section">
           <div className="section-content">
-            <h2 className="section-title">Tools & Predefined Tracks</h2>
-
             {/* Tools Area */}
-            <div className="mobile-tools-area mb-4">
-              <ToolsArea
-                setActiveView={setActiveView}
-                setCurrentTrack={setCurrentTrack}
-                setShow={setShow}
-                setInfoMessage={setInfoMessage}
-              />
-            </div>
+            {/* <div className="mobile-tools-area mb-4"> */}
+            <ToolsArea
+              setActiveView={setActiveView}
+              setCurrentTrack={setCurrentTrack}
+              setShow={setShow}
+              setInfoMessage={setInfoMessage}
+            />
+            {/* </div> */}
 
             {/* Tools Toggle */}
             <div className="mobile-tools-toggle mb-4">
@@ -186,22 +184,20 @@ function App() {
         {/* Section 2: Create Track List + Recommendation Results */}
         <section ref={createAndRecommendationsRef} className="mobile-section">
           <div className="section-content">
-            <h2 className="section-title">Create & Recommendations</h2>
-
-            {/* Create Track List */}
-            <div className="mobile-create-tracklist mb-4">
-              <CreateTrackList
-                setShow={setShow}
-                setInfoMessage={setInfoMessage}
-              />
-            </div>
-
             {/* Recommendation Results */}
-            <div className="mobile-recommendation-results">
+            <div className="mobile-recommendation-results  mb-4">
               <RecommendationResults
                 trackInfo={trackInfo}
                 recommendations={recommendations}
                 handlePlayTrack={handlePlayTrack}
+              />
+            </div>
+
+            {/* Create Track List */}
+            <div className="mobile-create-tracklist">
+              <CreateTrackList
+                setShow={setShow}
+                setInfoMessage={setInfoMessage}
               />
             </div>
           </div>
