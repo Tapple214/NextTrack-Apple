@@ -8,15 +8,13 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
   const [trackList, setTrackList] = useState([]);
   const [tracklistName, setTracklistName] = useState("");
 
-  // Extract track ID from Spotify URL
   const extractTrackId = (url) => {
     if (!url) return null;
 
-    // Handle various Spotify URL formats
     const patterns = [
-      /(?:open\.)?spotify\.com\/track\/([a-zA-Z0-9]+)/, // https://open.spotify.com/track/... or https://spotify.com/track/...
-      /spotify:track:([a-zA-Z0-9]+)/, // spotify:track:... format
-      /track\/([a-zA-Z0-9]+)/, // Just track/... format
+      /(?:open\.)?spotify\.com\/track\/([a-zA-Z0-9]+)/,
+      /spotify:track:([a-zA-Z0-9]+)/,
+      /track\/([a-zA-Z0-9]+)/,
     ];
 
     for (const pattern of patterns) {
@@ -117,9 +115,70 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
     event.target.value = "";
   };
 
+  const showInfo = () => {
+    setShow(true);
+    setInfoMessage(
+      <>
+        <h4>Create Tracklist</h4>
+        <p>
+          Add tracks by pasting Spotify URLs, then download or upload your
+          tracklists.
+        </p>
+      </>
+    );
+  };
+
+  const renderTrackItem = (track) => (
+    <Item
+      key={track.id}
+      action="create"
+      onDeleteTrack={handleDeleteTrack}
+      title={`https://open.spotify.com/embed/track/${track.id}`}
+      trackId={track.id}
+      displayTitle={
+        <div>
+          <b>{track.name}</b>
+          <br />
+          <p className="m-0" style={{ fontSize: "12px" }}>
+            {track.artists?.map((a) => a.name).join(", ") || "Unknown Artist"}
+          </p>
+        </div>
+      }
+      metrics={track}
+    />
+  );
+
+  const renderUploadButton = () => (
+    <div style={{ position: "relative" }}>
+      <input
+        type="file"
+        accept=".json"
+        onChange={handleUpload}
+        style={{
+          position: "absolute",
+          opacity: 0,
+          width: "100%",
+          height: "100%",
+          cursor: "pointer",
+          top: 0,
+          left: 0,
+        }}
+      />
+      <Button
+        id="icon-btn"
+        title="Upload tracklist"
+        onClick={(e) => {
+          e.preventDefault();
+          e.target.closest("div").querySelector('input[type="file"]').click();
+        }}
+      >
+        <i className="bi bi-upload"></i>
+      </Button>
+    </div>
+  );
+
   return (
     <>
-      {/* Desktop Layout */}
       <div
         className="d-none d-sm-block sections w-50 d-flex flex-column mt-2 ms-2 me-4 rounded-4 position-relative overflow-auto"
         style={{ marginBottom: "45px" }}
@@ -130,7 +189,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
               <i className="bi bi-pencil-square"></i>
               <Form.Control
                 type="text"
-                placeholder={"Name your tracklist!" || tracklistName}
+                placeholder="Name your tracklist!"
                 className="no-input-outline input custom-placeholder ms-2 bg-transparent border-0"
                 style={{ color: "#312c51" }}
                 value={tracklistName}
@@ -141,45 +200,14 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
           </Form>
 
           <i
-            onClick={() => {
-              setShow(true);
-              setInfoMessage(
-                <>
-                  <h4>Create Tracklist</h4>
-                  <p>
-                    Add tracks by pasting Spotify URLs, then download or upload
-                    your tracklists.
-                  </p>
-                </>
-              );
-            }}
+            onClick={showInfo}
             style={{ cursor: "pointer" }}
             className="bi bi-info-circle-fill"
           ></i>
         </div>
 
-        {trackList.map((track) => (
-          <Item
-            key={track.id}
-            action="create"
-            onDeleteTrack={handleDeleteTrack}
-            title={`https://open.spotify.com/embed/track/${track.id}`}
-            trackId={track.id}
-            displayTitle={
-              <div>
-                <b>{track.name}</b>
-                <br />
-                <p className="m-0" style={{ fontSize: "12px" }}>
-                  {track.artists?.map((a) => a.name).join(", ") ||
-                    "Unknown Artist"}
-                </p>
-              </div>
-            }
-            metrics={track}
-          />
-        ))}
+        {trackList.map(renderTrackItem)}
 
-        {/* Quick Actions */}
         <div className="w-100 position-relative h-100 d-flex justify-content-center align-items-end">
           <div
             className="px-3 rounded rounded-2 w-50 position-fixed"
@@ -223,35 +251,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                           <i className="bi bi-download"></i>
                         </Button>
                       ) : (
-                        <div style={{ position: "relative" }}>
-                          <input
-                            type="file"
-                            accept=".json"
-                            onChange={handleUpload}
-                            style={{
-                              position: "absolute",
-                              opacity: 0,
-                              width: "100%",
-                              height: "100%",
-                              cursor: "pointer",
-                              top: 0,
-                              left: 0,
-                            }}
-                          />
-                          <Button
-                            id="icon-btn"
-                            title="Upload tracklist"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.target
-                                .closest("div")
-                                .querySelector('input[type="file"]')
-                                .click();
-                            }}
-                          >
-                            <i className="bi bi-upload"></i>
-                          </Button>
-                        </div>
+                        renderUploadButton()
                       )}
                     </div>
                   </Form>
@@ -262,7 +262,6 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
         </div>
       </div>
 
-      {/* Mobile Layout */}
       <div className="d-sm-none mobile-create-content d-flex flex-column h-100">
         <div className="d-flex justify-content-between align-items-center mb-3">
           <Form>
@@ -280,47 +279,16 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
             </Form.Group>
           </Form>
           <i
-            onClick={() => {
-              setShow(true);
-              setInfoMessage(
-                <>
-                  <h4>Create Tracklist</h4>
-                  <p>
-                    Add tracks by pasting Spotify URLs, then download or upload
-                    your tracklists.
-                  </p>
-                </>
-              );
-            }}
+            onClick={showInfo}
             style={{ cursor: "pointer" }}
             className="bi bi-info-circle-fill"
           ></i>
         </div>
 
         <div className="mobile-tracklist-items mb-3 flex-grow-1 overflow-auto">
-          {trackList.map((track) => (
-            <Item
-              key={track.id}
-              action="create"
-              onDeleteTrack={handleDeleteTrack}
-              title={`https://open.spotify.com/embed/track/${track.id}`}
-              trackId={track.id}
-              displayTitle={
-                <div>
-                  <b>{track.name}</b>
-                  <br />
-                  <p className="m-0" style={{ fontSize: "12px" }}>
-                    {track.artists?.map((a) => a.name).join(", ") ||
-                      "Unknown Artist"}
-                  </p>
-                </div>
-              }
-              metrics={track}
-            />
-          ))}
+          {trackList.map(renderTrackItem)}
         </div>
 
-        {/* Mobile Quick Actions */}
         <div className="mt-auto pt-3">
           <div className="d-flex justify-content-center">
             <div className="quick-actions rounded-3 pe-2 w-100">
@@ -349,35 +317,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                     <i className="bi bi-download"></i>
                   </Button>
                 ) : (
-                  <div style={{ position: "relative" }}>
-                    <input
-                      type="file"
-                      accept=".json"
-                      onChange={handleUpload}
-                      style={{
-                        position: "absolute",
-                        opacity: 0,
-                        width: "100%",
-                        height: "100%",
-                        cursor: "pointer",
-                        top: 0,
-                        left: 0,
-                      }}
-                    />
-                    <Button
-                      id="icon-btn"
-                      title="Upload tracklist"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.target
-                          .closest("div")
-                          .querySelector('input[type="file"]')
-                          .click();
-                      }}
-                    >
-                      <i className="bi bi-upload"></i>
-                    </Button>
-                  </div>
+                  renderUploadButton()
                 )}
               </Form>
             </div>
