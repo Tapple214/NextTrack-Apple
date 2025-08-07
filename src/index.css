@@ -41,6 +41,12 @@ code {
   border: 2px solid rgba(255, 255, 255, 0.05);
 }
 
+.tools-area-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .items {
   background-color: rgba(255, 255, 255, 0.168);
 }
@@ -56,7 +62,6 @@ code {
   background-color: #312c51;
   color: rgba(255, 255, 255, 0.905);
   border: none;
-  /* padding-top: 10px; */
 }
 
 .btn:hover {
@@ -191,6 +196,16 @@ code {
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 20px;
+}
+
+/* Recommendation styles */
+.recommendations {
+  margin-top: 20px;
+}
+
+.recommendation-list {
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .mobile-tools-content {

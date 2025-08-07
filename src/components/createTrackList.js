@@ -139,7 +139,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
           ></i>
         </div>
 
-        {trackList.map((track, index) => (
+        {trackList.map((track) => (
           <Item
             key={track.id}
             action="create"
@@ -188,7 +188,6 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
 
                     <div className="d-flex">
                       <Button
-                        // variant="link"
                         id="icon-btn"
                         onClick={handleAddTrack}
                         title="Add track"
@@ -198,9 +197,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
 
                       {trackList.length > 0 ? (
                         <Button
-                          // variant="link"
                           id="icon-btn"
-                          // className="clickable-icon"
                           onClick={handleDownload}
                           title="Download tracklist"
                         >
@@ -223,8 +220,6 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
                             }}
                           />
                           <Button
-                            // variant="link"
-                            // className="clickable-icon
                             id="icon-btn"
                             title="Upload tracklist"
                             onClick={(e) => {
@@ -286,7 +281,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
         </Form>
 
         <div className="mobile-tracklist-items mb-3">
-          {trackList.map((track, index) => (
+          {trackList.map((track) => (
             <Item
               key={track.id}
               action="create"

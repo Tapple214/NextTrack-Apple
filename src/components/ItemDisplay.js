@@ -76,7 +76,6 @@ function Item({
           {/* Copy Link */}
           <Button
             variant="link"
-            // className="btn"
             id="icon-btn"
             onClick={handleCopyLink}
             title="Copy link to clipboard"

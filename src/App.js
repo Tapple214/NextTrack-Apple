@@ -8,7 +8,6 @@ import CreateTrackList from "./components/createTrackList.js";
 import InfoModal from "./components/infoModal.js";
 import PredefinedTracklist from "./components/predefinedTracklist.js";
 
-// TODO: Apply responsive design
 function App() {
   const [recommendations, setRecommendations] = useState([]);
   const [trackInfo, setTrackInfo] = useState(null);
@@ -19,7 +18,6 @@ function App() {
   const [infoMessage, setInfoMessage] = useState("");
   const [currentSection, setCurrentSection] = useState(0);
 
-  // Refs for each section
   const toolsAndPredefinedRef = useRef(null);
   const createAndRecommendationsRef = useRef(null);
 
@@ -47,7 +45,6 @@ function App() {
     setActiveView("player");
   };
 
-  // Scroll to specific section
   const scrollToSection = (sectionIndex) => {
     const sections = [toolsAndPredefinedRef, createAndRecommendationsRef];
     const targetSection = sections[sectionIndex];
@@ -61,7 +58,6 @@ function App() {
     }
   };
 
-  // Handle scroll events to update current section
   const handleScroll = () => {
     const sections = [toolsAndPredefinedRef, createAndRecommendationsRef];
 
@@ -151,14 +147,12 @@ function App() {
         <section ref={toolsAndPredefinedRef} className="mobile-section">
           <div className="section-content">
             {/* Tools Area */}
-            {/* <div className="mobile-tools-area mb-4"> */}
             <ToolsArea
               setActiveView={setActiveView}
               setCurrentTrack={setCurrentTrack}
               setShow={setShow}
               setInfoMessage={setInfoMessage}
             />
-            {/* </div> */}
 
             {/* Tools Toggle */}
             <div className="mobile-tools-toggle mb-4">
