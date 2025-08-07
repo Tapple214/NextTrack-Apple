@@ -14,7 +14,7 @@ export default function ToolsToggle({
             handleRecommendations={handleRecommendations}
           />
         ) : (
-          <div className="pt-4 mt-3 w-100 h-100 pb-3 d-flex justify-content-center align-items-center">
+          <div className="pt-4 mt-md-3 w-100 h-100 pb-3 d-flex justify-content-center align-items-center">
             {currentTrack ? (
               <>
                 <iframe
