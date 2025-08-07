@@ -121,7 +121,7 @@ function App() {
       {/* Desktop Layout */}
       <div className="desktop-layout d-none d-sm-flex flex-column vh-100 overflow-hidden">
         {/* Top half of the page */}
-        <div className="h-50 d-flex flex-sm-column flex--column flex-lg-row overflow-hidden">
+        <div className="h-50 d-flex overflow-hidden">
           {/* Tools Area (Left) */}
           <ToolsArea
             setActiveView={setActiveView}
