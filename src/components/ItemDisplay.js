@@ -108,7 +108,7 @@ function Item({
           ) : (
             metrics && (
               <OverlayTrigger
-                trigger="hover"
+                trigger={["hover", "focus"]}
                 placement="top"
                 overlay={metricsPopover}
               >
