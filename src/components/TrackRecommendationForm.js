@@ -24,18 +24,27 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
       // Checks if track URL is valid
       const trackId = extractTrackId(trackUrl);
 
-      // Find MusicBrainz counterpart and log "match" if found
+      // Find MusicBrainz counterpart and get recommendations based on MusicBrainz features
       const musicBrainzMatch = await recommenderAPI.findMusicBrainzCounterpart(
         trackId
       );
 
-      // TODO: ensure that 2nd iteration of rec uses features rather than just same artist
-      // Use util to get track features and recommendations
-      // Uses features from seed track to find similar tracks (results in "recommendations")
-      const [seedTrack, recommendations] = await Promise.all([
-        recommenderAPI.getTrackFeatures(trackId),
-        recommenderAPI.findSimilarTracks(trackId),
-      ]);
+      let recommendations = [];
+      let seedTrack = null;
+
+      if (musicBrainzMatch) {
+        // Use MusicBrainz-based recommendations
+        [seedTrack, recommendations] = await Promise.all([
+          recommenderAPI.getTrackFeatures(trackId),
+          recommenderAPI.findSimilarTracksFromMusicBrainz(musicBrainzMatch),
+        ]);
+      } else {
+        // Fallback to original Spotify-based recommendations
+        [seedTrack, recommendations] = await Promise.all([
+          recommenderAPI.getTrackFeatures(trackId),
+          recommenderAPI.findSimilarTracks(trackId),
+        ]);
+      }
 
       // Pass recommendations and seed track to parent component
       handleRecommendations(recommendations, seedTrack);

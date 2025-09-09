@@ -285,12 +285,12 @@ class RecommenderAPI {
       const trackName = trackData.body.name;
       const artistName = trackData.body.artists[0].name;
 
-      // Search MusicBrainz for matching recording
+      // Search MusicBrainz for matching recording with tags and relations
       const query = `recording:"${trackName}" AND artist:"${artistName}"`;
       const response = await fetch(
         `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(
           query
-        )}&fmt=json&limit=1`,
+        )}&fmt=json&limit=1&inc=tags+genres+artist-rels`,
         {
           headers: {
             "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
@@ -315,6 +315,9 @@ class RecommenderAPI {
           title: recording.title,
           artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
           release: recording.releases?.[0]?.title || "Unknown Release",
+          tags: recording.tags || [],
+          genres: recording.genres || [],
+          artistId: recording["artist-credit"]?.[0]?.artist?.id || null,
         };
       } else {
         console.log("No MusicBrainz match found");
@@ -323,6 +326,197 @@ class RecommenderAPI {
     } catch (error) {
       console.error("Error finding MusicBrainz counterpart:", error);
       return null;
+    }
+  }
+
+  // Find similar tracks using MusicBrainz features
+  async findSimilarTracksFromMusicBrainz(mbTrack, limit = 5) {
+    try {
+      console.log("Finding similar tracks using MusicBrainz data:", mbTrack);
+      const similarTracks = [];
+      const seenTrackIds = new Set();
+
+      // Strategy 1: Find tracks by same artist
+      if (mbTrack.artistId) {
+        const artistTracks = await this.getMusicBrainzTracksByArtist(
+          mbTrack.artistId,
+          limit * 2
+        );
+        console.log(
+          `Found ${artistTracks.length} tracks by same artist from MusicBrainz:`,
+          artistTracks
+        );
+        for (const track of artistTracks) {
+          if (!seenTrackIds.has(track.mbid)) {
+            similarTracks.push(track);
+            seenTrackIds.add(track.mbid);
+            if (similarTracks.length >= limit) break;
+          }
+        }
+      }
+
+      // Strategy 2: Find tracks with similar tags/genres
+      if (similarTracks.length < limit && mbTrack.tags.length > 0) {
+        const tagTracks = await this.getMusicBrainzTracksByTags(
+          mbTrack.tags,
+          limit * 2
+        );
+        console.log(
+          `Found ${tagTracks.length} tracks by similar tags from MusicBrainz:`,
+          tagTracks
+        );
+        for (const track of tagTracks) {
+          if (!seenTrackIds.has(track.mbid)) {
+            similarTracks.push(track);
+            seenTrackIds.add(track.mbid);
+            if (similarTracks.length >= limit) break;
+          }
+        }
+      }
+
+      // Strategy 3: Find tracks from same release
+      if (similarTracks.length < limit && mbTrack.release) {
+        const releaseTracks = await this.getMusicBrainzTracksByRelease(
+          mbTrack.release,
+          limit * 2
+        );
+        console.log(
+          `Found ${releaseTracks.length} tracks from same release from MusicBrainz:`,
+          releaseTracks
+        );
+        for (const track of releaseTracks) {
+          if (!seenTrackIds.has(track.mbid)) {
+            similarTracks.push(track);
+            seenTrackIds.add(track.mbid);
+            if (similarTracks.length >= limit) break;
+          }
+        }
+      }
+
+      // Log all similar tracks found from MusicBrainz
+      console.log(
+        `Total similar tracks found from MusicBrainz: ${similarTracks.length}`,
+        similarTracks
+      );
+
+      // Convert MusicBrainz tracks to Spotify tracks
+      const spotifyTracks = [];
+      for (const mbTrack of similarTracks.slice(0, limit)) {
+        const spotifyTrack = await this.findSpotifyTrack(mbTrack);
+        if (spotifyTrack) {
+          spotifyTracks.push(spotifyTrack);
+        }
+      }
+
+      if (spotifyTracks.length > 0) {
+        console.log("found similar tracks from musicbrainz data");
+        console.log(
+          `Successfully converted ${spotifyTracks.length} MusicBrainz tracks to Spotify format:`,
+          spotifyTracks
+        );
+      }
+
+      return spotifyTracks;
+    } catch (error) {
+      console.error("Error finding similar tracks from MusicBrainz:", error);
+      return [];
+    }
+  }
+
+  // Get MusicBrainz tracks by artist
+  async getMusicBrainzTracksByArtist(artistId, limit = 10) {
+    try {
+      const response = await fetch(
+        `https://musicbrainz.org/ws/2/recording?artist=${artistId}&fmt=json&limit=${limit}`,
+        {
+          headers: {
+            "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      return (data.recordings || []).map((recording) => ({
+        mbid: recording.id,
+        title: recording.title,
+        artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
+        release: recording.releases?.[0]?.title || "Unknown Release",
+      }));
+    } catch (error) {
+      console.error("Error fetching tracks by artist:", error);
+      return [];
+    }
+  }
+
+  // Get MusicBrainz tracks by tags
+  async getMusicBrainzTracksByTags(tags, limit = 10) {
+    try {
+      const tracks = [];
+      for (const tag of tags.slice(0, 3)) {
+        // Use first 3 tags
+        const response = await fetch(
+          `https://musicbrainz.org/ws/2/recording?tag:${encodeURIComponent(
+            tag.name
+          )}&fmt=json&limit=${Math.ceil(limit / 3)}`,
+          {
+            headers: {
+              "User-Agent":
+                "NextTrack-Apple/1.0 (https://github.com/your-repo)",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const recordings = data.recordings || [];
+          tracks.push(
+            ...recordings.map((recording) => ({
+              mbid: recording.id,
+              title: recording.title,
+              artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
+              release: recording.releases?.[0]?.title || "Unknown Release",
+            }))
+          );
+        }
+      }
+      return tracks;
+    } catch (error) {
+      console.error("Error fetching tracks by tags:", error);
+      return [];
+    }
+  }
+
+  // Get MusicBrainz tracks by release
+  async getMusicBrainzTracksByRelease(releaseTitle, limit = 10) {
+    try {
+      const response = await fetch(
+        `https://musicbrainz.org/ws/2/recording?release:"${encodeURIComponent(
+          releaseTitle
+        )}"&fmt=json&limit=${limit}`,
+        {
+          headers: {
+            "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      return (data.recordings || []).map((recording) => ({
+        mbid: recording.id,
+        title: recording.title,
+        artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
+        release: recording.releases?.[0]?.title || "Unknown Release",
+      }));
+    } catch (error) {
+      console.error("Error fetching tracks by release:", error);
+      return [];
     }
   }
 }
