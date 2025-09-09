@@ -71,8 +71,8 @@ class RecommenderAPI {
     return trackInfo;
   }
 
-  // Finds similar tracks to seed track; limited to 5 recs for now
-  async findSimilarTracks(seedTrackId, limit = 5) {
+  // Finds similar tracks to seed track; limited to 10 recs for now
+  async findSimilarTracks(seedTrackId, limit = 10) {
     await this.ensureAuthenticated();
 
     // Gets seed track features; TOOD: currently not needed just yet, just keeping it for now
@@ -127,7 +127,7 @@ class RecommenderAPI {
   }
 
   // Sample tracks/Predefined tracks from Last.fm
-  async getSampleTracks(limit = 5) {
+  async getSampleTracks(limit = 10) {
     await this.ensureAuthenticated();
     const tracks = [];
     const seenTrackIds = new Set();
@@ -295,7 +295,7 @@ class RecommenderAPI {
   }
 
   // Fallback method using original Spotify genre search
-  async getFallbackSampleTracks(limit = 5) {
+  async getFallbackSampleTracks(limit = 10) {
     const genres = ["pop", "rock", "hip-hop", "electronic", "jazz"];
     const tracks = [];
     const seenTrackIds = new Set();
@@ -372,93 +372,149 @@ class RecommenderAPI {
     }
   }
 
-  // Find similar tracks using Last.fm features
+  // Find similar tracks using Last.fm features with multi-stage content-based filtering
   async findSimilarTracksFromLastFm(
     lastFmTrack,
     originalSpotifyTrackId,
-    limit = 5
+    limit = 10
   ) {
     try {
-      console.log("Finding similar tracks using Last.fm data:", lastFmTrack);
+      console.log(
+        "Finding similar tracks using Last.fm data with content-based filtering:",
+        lastFmTrack
+      );
       const similarTracks = [];
       const seenTrackIds = new Set();
 
-      // Strategy 1: Use Last.fm's getSimilar API method
+      // STAGE 1: Get collaborative filtering results from Last.fm
       if (lastFmTrack.name && lastFmTrack.artist) {
         const similarTracksResponse = await this.getLastFmSimilarTracks(
           lastFmTrack.artist,
           lastFmTrack.name,
-          limit * 2
+          limit * 4 // Get more tracks for filtering (40 for 10 recommendations)
         );
         console.log(
-          `Found ${similarTracksResponse.length} similar tracks from Last.fm:`,
+          `Stage 1 - Found ${similarTracksResponse.length} collaborative filtering results:`,
           similarTracksResponse
         );
+
+        // Add collaborative filtering results
         for (const track of similarTracksResponse) {
           if (!seenTrackIds.has(track.mbid || track.title)) {
-            similarTracks.push(track);
+            similarTracks.push({
+              ...track,
+              collaborativeScore: parseFloat(track.match) || 0.5, // Use Last.fm's match score
+              source: "collaborative",
+            });
             seenTrackIds.add(track.mbid || track.title);
-            if (similarTracks.length >= limit) break;
           }
         }
       }
 
-      // Strategy 2: Find tracks with similar tags
-      if (similarTracks.length < limit && lastFmTrack.tags.length > 0) {
+      // STAGE 2: Get content-based results (tag-based)
+      if (lastFmTrack.tags && lastFmTrack.tags.length > 0) {
         const tagTracks = await this.getLastFmTracksByTags(
           lastFmTrack.tags,
-          limit * 2
+          limit * 4 // Get more tracks for filtering (40 for 10 recommendations)
         );
         console.log(
-          `Found ${tagTracks.length} tracks by similar tags from Last.fm:`,
+          `Stage 2 - Found ${tagTracks.length} content-based (tag) results:`,
           tagTracks
         );
+
+        // Add content-based results
         for (const track of tagTracks) {
           if (!seenTrackIds.has(track.mbid || track.title)) {
-            similarTracks.push(track);
+            similarTracks.push({
+              ...track,
+              collaborativeScore: 0, // No collaborative score for tag-based results
+              source: "content",
+            });
             seenTrackIds.add(track.mbid || track.title);
-            if (similarTracks.length >= limit) break;
           }
         }
       }
 
-      // Log all similar tracks found from Last.fm
       console.log(
-        `Total similar tracks found from Last.fm: ${similarTracks.length}`,
-        similarTracks
+        `Total tracks before content-based filtering: ${similarTracks.length}`
       );
 
-      // Convert Last.fm tracks to Spotify tracks
+      // STAGE 3: Content-based filtering and scoring
+      const scoredTracks = [];
+      for (const track of similarTracks) {
+        // Calculate content-based similarity score
+        const contentScore = await this.calculateContentSimilarity(
+          lastFmTrack,
+          track
+        );
+
+        // Calculate hybrid score (60% collaborative, 40% content-based)
+        const hybridScore = track.collaborativeScore * 0.6 + contentScore * 0.4;
+
+        scoredTracks.push({
+          ...track,
+          contentScore,
+          hybridScore,
+          tagSimilarity: this.calculateTagSimilarity(
+            lastFmTrack.tags || [],
+            track.tags || []
+          ),
+        });
+      }
+
+      // STAGE 4: Filter and re-rank by hybrid score
+      const filteredTracks = scoredTracks
+        .filter((track) => track.hybridScore > 0.1) // Filter out very low similarity
+        .sort((a, b) => b.hybridScore - a.hybridScore) // Sort by hybrid score
+        .slice(0, limit * 3); // Take top candidates (30 for 10 recommendations)
+
+      console.log(
+        `After content-based filtering: ${filteredTracks.length} tracks`
+      );
+      console.log(
+        "Top scored tracks:",
+        filteredTracks.slice(0, 5).map((t) => ({
+          title: t.title,
+          artist: t.artist,
+          hybridScore: t.hybridScore.toFixed(3),
+          contentScore: t.contentScore.toFixed(3),
+          collaborativeScore: t.collaborativeScore.toFixed(3),
+          tagSimilarity: t.tagSimilarity.toFixed(3),
+        }))
+      );
+
+      // STAGE 5: Convert to Spotify tracks
       const spotifyTracks = [];
-      for (const lastFmTrack of similarTracks.slice(0, limit)) {
-        console.log(`Converting Last.fm track to Spotify:`, lastFmTrack);
+      for (const lastFmTrack of filteredTracks.slice(0, limit)) {
+        console.log(`Converting Last.fm track to Spotify:`, lastFmTrack.title);
         const spotifyTrack = await this.findSpotifyTrack(lastFmTrack);
-        console.log(`Spotify track result:`, spotifyTrack);
         if (spotifyTrack) {
+          // Add similarity metadata to Spotify track
+          spotifyTrack.similarityScore = lastFmTrack.hybridScore;
+          spotifyTrack.contentScore = lastFmTrack.contentScore;
+          spotifyTrack.collaborativeScore = lastFmTrack.collaborativeScore;
+          spotifyTrack.tagSimilarity = lastFmTrack.tagSimilarity;
           spotifyTracks.push(spotifyTrack);
-        } else {
           console.log(
-            `Failed to convert Last.fm track to Spotify:`,
-            lastFmTrack
+            `Successfully converted: ${
+              spotifyTrack.name
+            } (score: ${lastFmTrack.hybridScore.toFixed(3)})`
           );
+        } else {
+          console.log(`Failed to convert: ${lastFmTrack.title}`);
         }
       }
 
       if (spotifyTracks.length > 0) {
-        console.log("found similar tracks from last.fm data");
         console.log(
-          `Successfully converted ${spotifyTracks.length} Last.fm tracks to Spotify format:`,
-          spotifyTracks
+          `Multi-stage filtering complete: ${spotifyTracks.length} Spotify tracks found`
         );
         return spotifyTracks;
       } else {
-        console.log(
-          "No Last.fm tracks were successfully converted to Spotify format"
-        );
+        console.log("No tracks successfully converted to Spotify format");
         console.log(
           "Falling back to original Spotify-based recommendations..."
         );
-        // Fallback to original Spotify recommendations
         return await this.findSimilarTracks(originalSpotifyTrackId, limit);
       }
     } catch (error) {
@@ -493,6 +549,117 @@ class RecommenderAPI {
       console.error("Error fetching similar tracks from Last.fm:", error);
       return [];
     }
+  }
+
+  // Calculate tag similarity between two tracks
+  calculateTagSimilarity(tags1, tags2) {
+    if (!tags1 || !tags2 || tags1.length === 0 || tags2.length === 0) {
+      return 0;
+    }
+
+    // Normalize tags to lowercase for comparison
+    const normalizeTags = (tags) =>
+      tags
+        .map((tag) =>
+          typeof tag === "string" ? tag.toLowerCase() : tag.name?.toLowerCase()
+        )
+        .filter(Boolean);
+
+    const normalizedTags1 = normalizeTags(tags1);
+    const normalizedTags2 = normalizeTags(tags2);
+
+    // Calculate Jaccard similarity
+    const set1 = new Set(normalizedTags1);
+    const set2 = new Set(normalizedTags2);
+
+    const intersection = new Set([...set1].filter((tag) => set2.has(tag)));
+    const union = new Set([...set1, ...set2]);
+
+    return intersection.size / union.size;
+  }
+
+  // Get artist similarity from Last.fm
+  async getArtistSimilarity(artist1, artist2) {
+    try {
+      const response = await fetch(
+        `https://ws.audioscrobbler.com/2.0/?method=artist.getSimilar&api_key=${
+          this.lastFmApiKey
+        }&artist=${encodeURIComponent(artist1)}&limit=50&format=json`
+      );
+
+      if (!response.ok) return 0;
+
+      const data = await response.json();
+      const similarArtists = data.similarartists?.artist || [];
+
+      // Find if artist2 is in the similar artists list
+      const match = similarArtists.find(
+        (artist) => artist.name?.toLowerCase() === artist2.toLowerCase()
+      );
+
+      return match ? parseFloat(match.match) || 0 : 0;
+    } catch (error) {
+      console.error("Error getting artist similarity:", error);
+      return 0;
+    }
+  }
+
+  // Calculate content-based similarity score
+  async calculateContentSimilarity(originalTrack, candidateTrack) {
+    let score = 0;
+    let factors = 0;
+
+    // Factor 1: Tag similarity (40% weight)
+    if (originalTrack.tags && candidateTrack.tags) {
+      const tagSimilarity = this.calculateTagSimilarity(
+        originalTrack.tags,
+        candidateTrack.tags
+      );
+      score += tagSimilarity * 0.4;
+      factors += 0.4;
+    }
+
+    // Factor 2: Artist similarity (30% weight)
+    if (originalTrack.artist && candidateTrack.artist) {
+      const artistSimilarity = await this.getArtistSimilarity(
+        originalTrack.artist,
+        candidateTrack.artist
+      );
+      score += artistSimilarity * 0.3;
+      factors += 0.3;
+    }
+
+    // Factor 3: Popularity similarity (20% weight)
+    if (originalTrack.playcount && candidateTrack.playcount) {
+      const originalPopularity = Math.log10(
+        parseInt(originalTrack.playcount) + 1
+      );
+      const candidatePopularity = Math.log10(
+        parseInt(candidateTrack.playcount) + 1
+      );
+      const popularitySimilarity =
+        1 -
+        Math.abs(originalPopularity - candidatePopularity) /
+          Math.max(originalPopularity, candidatePopularity);
+      score += Math.max(0, popularitySimilarity) * 0.2;
+      factors += 0.2;
+    }
+
+    // Factor 4: Duration similarity (10% weight)
+    if (originalTrack.duration && candidateTrack.duration) {
+      const durationDiff = Math.abs(
+        parseInt(originalTrack.duration) - parseInt(candidateTrack.duration)
+      );
+      const avgDuration =
+        (parseInt(originalTrack.duration) + parseInt(candidateTrack.duration)) /
+        2;
+      const durationSimilarity = 1 - durationDiff / avgDuration;
+      score += Math.max(0, durationSimilarity) * 0.1;
+      factors += 0.1;
+    }
+
+    // Normalize score by the number of factors that were available
+    return factors > 0 ? score / factors : 0;
   }
 
   // Get Last.fm tracks by tags
