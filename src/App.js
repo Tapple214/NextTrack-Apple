@@ -5,7 +5,7 @@ import ToolsArea from "./components/ToolsArea.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 import CreateTrackList from "./components/createTrackList.js";
-import TrackInfoModal, { InfoModal } from "./components/infoModal.js";
+import { InfoModal } from "./components/infoModal.js";
 import PredefinedTracklist from "./components/predefinedTracklist.js";
 
 function App() {
@@ -24,7 +24,7 @@ function App() {
   useEffect(() => {
     const loadSampleTracks = async () => {
       try {
-        const tracks = await recommenderAPI.getSampleTracks(5);
+        const tracks = await recommenderAPI.getSampleTracks(10);
         setSampleTracks(tracks);
       } catch (error) {
         console.error("Error loading sample tracks:", error);
