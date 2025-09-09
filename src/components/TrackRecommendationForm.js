@@ -24,22 +24,17 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
       // Checks if track URL is valid
       const trackId = extractTrackId(trackUrl);
 
-      // Find MusicBrainz counterpart and get recommendations based on MusicBrainz features
-      const musicBrainzMatch = await recommenderAPI.findMusicBrainzCounterpart(
-        trackId
-      );
+      // Find Last.fm counterpart and get recommendations based on Last.fm features
+      const lastFmMatch = await recommenderAPI.findLastFmCounterpart(trackId);
 
       let recommendations = [];
       let seedTrack = null;
 
-      if (musicBrainzMatch) {
-        // Use MusicBrainz-based recommendations
+      if (lastFmMatch) {
+        // Use Last.fm-based recommendations
         [seedTrack, recommendations] = await Promise.all([
           recommenderAPI.getTrackFeatures(trackId),
-          recommenderAPI.findSimilarTracksFromMusicBrainz(
-            musicBrainzMatch,
-            trackId
-          ),
+          recommenderAPI.findSimilarTracksFromLastFm(lastFmMatch, trackId),
         ]);
       } else {
         // Fallback to original Spotify-based recommendations

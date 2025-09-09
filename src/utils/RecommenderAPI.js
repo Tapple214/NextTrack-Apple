@@ -8,6 +8,7 @@ class RecommenderAPI {
       clientSecret: "a91f9fdde7e94d6cbb2e1ef59badac46",
       redirectUri: "https://localhost:3000",
     });
+    this.lastFmApiKey = "0f26d1bcf6447ee11b20b6134cddbd42"; // Replace with your Last.fm API key
     this.tokenExpirationTime = null;
     this.trackCache = new Map();
   }
@@ -125,105 +126,120 @@ class RecommenderAPI {
     return recommendations.slice(0, limit);
   }
 
-  // Sample tracks/Predefined tracks from MusicBrainz
+  // Sample tracks/Predefined tracks from Last.fm
   async getSampleTracks(limit = 5) {
     await this.ensureAuthenticated();
     const tracks = [];
     const seenTrackIds = new Set();
 
-    try {
-      // Get popular tracks from MusicBrainz using different search criteria
-      const musicBrainzTracks = await this.getMusicBrainzTracks(limit * 2);
+    console.log(`Getting sample tracks with limit: ${limit}`);
 
-      // Convert MusicBrainz tracks to Spotify tracks
-      for (const mbTrack of musicBrainzTracks) {
+    try {
+      // Get popular tracks from Last.fm using different search criteria
+      const lastFmTracks = await this.getLastFmTracks(limit * 2);
+      console.log(`Retrieved ${lastFmTracks.length} Last.fm tracks`);
+
+      // Convert Last.fm tracks to Spotify tracks
+      for (const lastFmTrack of lastFmTracks) {
         if (tracks.length >= limit) break;
 
-        const spotifyTrack = await this.findSpotifyTrack(mbTrack);
+        console.log(
+          `Converting Last.fm track to Spotify: ${lastFmTrack.title} by ${lastFmTrack.artist}`
+        );
+        const spotifyTrack = await this.findSpotifyTrack(lastFmTrack);
+
         if (spotifyTrack && !seenTrackIds.has(spotifyTrack.id)) {
           tracks.push(spotifyTrack);
           seenTrackIds.add(spotifyTrack.id);
+          console.log(
+            `Successfully converted: ${spotifyTrack.name} by ${spotifyTrack.artists[0]?.name}`
+          );
+        } else {
+          console.log(
+            `Failed to convert or duplicate: ${lastFmTrack.title} by ${lastFmTrack.artist}`
+          );
         }
       }
     } catch (error) {
-      console.error("Error fetching MusicBrainz tracks:", error);
-      // Fallback to original Spotify genre search if MusicBrainz fails
+      console.error("Error fetching Last.fm tracks:", error);
+      // Fallback to original Spotify genre search if Last.fm fails
+      console.log("Falling back to Spotify genre search");
       return this.getFallbackSampleTracks(limit);
     }
 
+    console.log(`Final sample tracks count: ${tracks.length}`);
     return tracks;
   }
 
-  // Get tracks from MusicBrainz API
-  async getMusicBrainzTracks(limit = 10) {
+  // Get tracks from Last.fm API
+  async getLastFmTracks(limit = 10) {
     const tracks = [];
 
-    // Search for popular tracks using different criteria
-    const searchQueries = [
-      "tag:pop",
-      "tag:rock",
-      "tag:hip-hop",
-      "tag:electronic",
-      "tag:jazz",
-    ];
+    // Search for popular tracks using different tags
+    const tags = ["pop", "rock", "hip-hop", "electronic", "jazz"];
 
-    for (const query of searchQueries) {
+    console.log(`Fetching Last.fm tracks with limit: ${limit}`);
+
+    for (const tag of tags) {
       if (tracks.length >= limit) break;
 
       try {
-        const response = await fetch(
-          `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(
-            query
-          )}&fmt=json&limit=2`,
-          {
-            headers: {
-              "User-Agent":
-                "NextTrack-Apple/1.0 (https://github.com/your-repo)",
-              Accept: "application/json",
-            },
-          }
-        );
+        const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&api_key=${
+          this.lastFmApiKey
+        }&tag=${encodeURIComponent(tag)}&limit=2&format=json`;
+
+        console.log(`Fetching Last.fm data for tag: ${tag}`);
+        const response = await fetch(url);
 
         if (!response.ok) {
+          console.log(`Last.fm API error for tag ${tag}: ${response.status}`);
           continue;
         }
 
         const data = await response.json();
-        const recordings = data.recordings || [];
+        console.log(`Last.fm response for tag ${tag}:`, data);
 
-        for (const recording of recordings) {
+        const trackList = data.tracks?.track || [];
+        console.log(`Found ${trackList.length} tracks for tag ${tag}`);
+
+        for (const track of trackList) {
           if (tracks.length >= limit) break;
 
-          // Extract track info from MusicBrainz
+          // Extract track info from Last.fm
           const trackInfo = {
-            title: recording.title,
-            artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
-            mbid: recording.id,
+            title: track.name,
+            artist: track.artist?.name || "Unknown Artist",
+            mbid: track.mbid || null,
+            playcount: track.playcount || 0,
+            listeners: track.listeners || 0,
           };
 
           tracks.push(trackInfo);
+          console.log(`Added track: ${trackInfo.title} by ${trackInfo.artist}`);
         }
       } catch (error) {
-        console.error(
-          `Error fetching MusicBrainz data for query: ${query}`,
-          error
-        );
+        console.error(`Error fetching Last.fm data for tag: ${tag}`, error);
         continue;
       }
     }
 
+    console.log(`Total Last.fm tracks collected: ${tracks.length}`);
     return tracks;
   }
 
-  // Find corresponding Spotify track for MusicBrainz track
-  async findSpotifyTrack(mbTrack) {
+  // Find corresponding Spotify track for Last.fm or MusicBrainz track
+  async findSpotifyTrack(externalTrack) {
     try {
+      // Handle both Last.fm and MusicBrainz track formats
+      const trackTitle = externalTrack.title || externalTrack.name;
+      const trackArtist = externalTrack.artist;
+
       // Try multiple search strategies
       const searchStrategies = [
-        `track:"${mbTrack.title}" artist:"${mbTrack.artist}"`,
-        `"${mbTrack.title}" "${mbTrack.artist}"`,
-        `track:${mbTrack.title} artist:${mbTrack.artist}`,
-        mbTrack.title + " " + mbTrack.artist,
+        `track:"${trackTitle}" artist:"${trackArtist}"`,
+        `"${trackTitle}" "${trackArtist}"`,
+        `track:${trackTitle} artist:${trackArtist}`,
+        trackTitle + " " + trackArtist,
       ];
 
       for (const query of searchStrategies) {
@@ -240,7 +256,7 @@ class RecommenderAPI {
           });
 
           console.log(
-            `Spotify search results for "${mbTrack.title}" with query "${query}":`,
+            `Spotify search results for "${trackTitle}" with query "${query}":`,
             items
           );
 
@@ -264,10 +280,15 @@ class RecommenderAPI {
       }
 
       console.log(
-        `No Spotify tracks found for: ${mbTrack.title} by ${mbTrack.artist} with any search strategy`
+        `No Spotify tracks found for: ${trackTitle} by ${trackArtist} with any search strategy`
       );
     } catch (error) {
-      console.error(`Error finding Spotify track for: ${mbTrack.title}`, error);
+      console.error(
+        `Error finding Spotify track for: ${
+          externalTrack.title || externalTrack.name
+        }`,
+        error
+      );
     }
 
     return null;
@@ -305,8 +326,8 @@ class RecommenderAPI {
     return tracks;
   }
 
-  // Find MusicBrainz counterpart for a Spotify track
-  async findMusicBrainzCounterpart(spotifyTrackId) {
+  // Find Last.fm counterpart for a Spotify track
+  async findLastFmCounterpart(spotifyTrackId) {
     try {
       await this.ensureAuthenticated();
 
@@ -315,150 +336,124 @@ class RecommenderAPI {
       const trackName = trackData.body.name;
       const artistName = trackData.body.artists[0].name;
 
-      // Search MusicBrainz for matching recording with tags and relations
-      const query = `recording:"${trackName}" AND artist:"${artistName}"`;
+      // Search Last.fm for track info
       const response = await fetch(
-        `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(
-          query
-        )}&fmt=json&limit=1&inc=tags+genres+artist-rels`,
-        {
-          headers: {
-            "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
-            Accept: "application/json",
-          },
-        }
+        `https://ws.audioscrobbler.com/2.0/?method=track.getInfo&api_key=${
+          this.lastFmApiKey
+        }&artist=${encodeURIComponent(artistName)}&track=${encodeURIComponent(
+          trackName
+        )}&format=json`
       );
 
       if (!response.ok) {
-        console.log("No MusicBrainz match found");
+        console.log("No Last.fm match found");
         return null;
       }
 
       const data = await response.json();
-      const recordings = data.recordings || [];
 
-      if (recordings.length > 0) {
-        const recording = recordings[0];
-        console.log("match");
+      if (data.track && data.track.name) {
+        console.log("Last.fm match found");
         return {
-          mbid: recording.id,
-          title: recording.title,
-          artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
-          release: recording.releases?.[0]?.title || "Unknown Release",
-          tags: recording.tags || [],
-          genres: recording.genres || [],
-          artistId: recording["artist-credit"]?.[0]?.artist?.id || null,
+          name: data.track.name,
+          artist: data.track.artist?.name || artistName,
+          mbid: data.track.mbid || null,
+          tags: data.track.toptags?.tag || [],
+          playcount: data.track.playcount || 0,
+          listeners: data.track.listeners || 0,
         };
       } else {
-        console.log("No MusicBrainz match found");
+        console.log("No Last.fm match found");
         return null;
       }
     } catch (error) {
-      console.error("Error finding MusicBrainz counterpart:", error);
+      console.error("Error finding Last.fm counterpart:", error);
       return null;
     }
   }
 
-  // Find similar tracks using MusicBrainz features
-  async findSimilarTracksFromMusicBrainz(
-    mbTrack,
+  // Find similar tracks using Last.fm features
+  async findSimilarTracksFromLastFm(
+    lastFmTrack,
     originalSpotifyTrackId,
     limit = 5
   ) {
     try {
-      console.log("Finding similar tracks using MusicBrainz data:", mbTrack);
+      console.log("Finding similar tracks using Last.fm data:", lastFmTrack);
       const similarTracks = [];
       const seenTrackIds = new Set();
 
-      // Strategy 1: Find tracks by same artist
-      if (mbTrack.artistId) {
-        const artistTracks = await this.getMusicBrainzTracksByArtist(
-          mbTrack.artistId,
+      // Strategy 1: Use Last.fm's getSimilar API method
+      if (lastFmTrack.name && lastFmTrack.artist) {
+        const similarTracksResponse = await this.getLastFmSimilarTracks(
+          lastFmTrack.artist,
+          lastFmTrack.name,
           limit * 2
         );
         console.log(
-          `Found ${artistTracks.length} tracks by same artist from MusicBrainz:`,
-          artistTracks
+          `Found ${similarTracksResponse.length} similar tracks from Last.fm:`,
+          similarTracksResponse
         );
-        for (const track of artistTracks) {
-          if (!seenTrackIds.has(track.mbid)) {
+        for (const track of similarTracksResponse) {
+          if (!seenTrackIds.has(track.mbid || track.title)) {
             similarTracks.push(track);
-            seenTrackIds.add(track.mbid);
+            seenTrackIds.add(track.mbid || track.title);
             if (similarTracks.length >= limit) break;
           }
         }
       }
 
-      // Strategy 2: Find tracks with similar tags/genres
-      if (similarTracks.length < limit && mbTrack.tags.length > 0) {
-        const tagTracks = await this.getMusicBrainzTracksByTags(
-          mbTrack.tags,
+      // Strategy 2: Find tracks with similar tags
+      if (similarTracks.length < limit && lastFmTrack.tags.length > 0) {
+        const tagTracks = await this.getLastFmTracksByTags(
+          lastFmTrack.tags,
           limit * 2
         );
         console.log(
-          `Found ${tagTracks.length} tracks by similar tags from MusicBrainz:`,
+          `Found ${tagTracks.length} tracks by similar tags from Last.fm:`,
           tagTracks
         );
         for (const track of tagTracks) {
-          if (!seenTrackIds.has(track.mbid)) {
+          if (!seenTrackIds.has(track.mbid || track.title)) {
             similarTracks.push(track);
-            seenTrackIds.add(track.mbid);
+            seenTrackIds.add(track.mbid || track.title);
             if (similarTracks.length >= limit) break;
           }
         }
       }
 
-      // Strategy 3: Find tracks from same release
-      if (similarTracks.length < limit && mbTrack.release) {
-        const releaseTracks = await this.getMusicBrainzTracksByRelease(
-          mbTrack.release,
-          limit * 2
-        );
-        console.log(
-          `Found ${releaseTracks.length} tracks from same release from MusicBrainz:`,
-          releaseTracks
-        );
-        for (const track of releaseTracks) {
-          if (!seenTrackIds.has(track.mbid)) {
-            similarTracks.push(track);
-            seenTrackIds.add(track.mbid);
-            if (similarTracks.length >= limit) break;
-          }
-        }
-      }
-
-      // Log all similar tracks found from MusicBrainz
+      // Log all similar tracks found from Last.fm
       console.log(
-        `Total similar tracks found from MusicBrainz: ${similarTracks.length}`,
+        `Total similar tracks found from Last.fm: ${similarTracks.length}`,
         similarTracks
       );
 
-      // Convert MusicBrainz tracks to Spotify tracks
+      // Convert Last.fm tracks to Spotify tracks
       const spotifyTracks = [];
-      for (const mbTrack of similarTracks.slice(0, limit)) {
-        console.log(`Converting MusicBrainz track to Spotify:`, mbTrack);
-        const spotifyTrack = await this.findSpotifyTrack(mbTrack);
+      for (const lastFmTrack of similarTracks.slice(0, limit)) {
+        console.log(`Converting Last.fm track to Spotify:`, lastFmTrack);
+        const spotifyTrack = await this.findSpotifyTrack(lastFmTrack);
         console.log(`Spotify track result:`, spotifyTrack);
         if (spotifyTrack) {
           spotifyTracks.push(spotifyTrack);
         } else {
           console.log(
-            `Failed to convert MusicBrainz track to Spotify:`,
-            mbTrack
+            `Failed to convert Last.fm track to Spotify:`,
+            lastFmTrack
           );
         }
       }
 
       if (spotifyTracks.length > 0) {
-        console.log("found similar tracks from musicbrainz data");
+        console.log("found similar tracks from last.fm data");
         console.log(
-          `Successfully converted ${spotifyTracks.length} MusicBrainz tracks to Spotify format:`,
+          `Successfully converted ${spotifyTracks.length} Last.fm tracks to Spotify format:`,
           spotifyTracks
         );
         return spotifyTracks;
       } else {
         console.log(
-          "No MusicBrainz tracks were successfully converted to Spotify format"
+          "No Last.fm tracks were successfully converted to Spotify format"
         );
         console.log(
           "Falling back to original Spotify-based recommendations..."
@@ -467,107 +462,75 @@ class RecommenderAPI {
         return await this.findSimilarTracks(originalSpotifyTrackId, limit);
       }
     } catch (error) {
-      console.error("Error finding similar tracks from MusicBrainz:", error);
+      console.error("Error finding similar tracks from Last.fm:", error);
       return [];
     }
   }
 
-  // Get MusicBrainz tracks by artist
-  async getMusicBrainzTracksByArtist(artistId, limit = 10) {
+  // Get Last.fm similar tracks using track.getSimilar API
+  async getLastFmSimilarTracks(artist, track, limit = 10) {
     try {
       const response = await fetch(
-        `https://musicbrainz.org/ws/2/recording?artist=${artistId}&fmt=json&limit=${limit}`,
-        {
-          headers: {
-            "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
-            Accept: "application/json",
-          },
-        }
+        `https://ws.audioscrobbler.com/2.0/?method=track.getSimilar&api_key=${
+          this.lastFmApiKey
+        }&artist=${encodeURIComponent(artist)}&track=${encodeURIComponent(
+          track
+        )}&limit=${limit}&format=json`
       );
 
       if (!response.ok) return [];
 
       const data = await response.json();
-      return (data.recordings || []).map((recording) => ({
-        mbid: recording.id,
-        title: recording.title,
-        artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
-        release: recording.releases?.[0]?.title || "Unknown Release",
+      const similarTracks = data.similartracks?.track || [];
+
+      return similarTracks.map((track) => ({
+        title: track.name,
+        artist: track.artist?.name || "Unknown Artist",
+        mbid: track.mbid || null,
+        match: track.match || 0,
       }));
     } catch (error) {
-      console.error("Error fetching tracks by artist:", error);
+      console.error("Error fetching similar tracks from Last.fm:", error);
       return [];
     }
   }
 
-  // Get MusicBrainz tracks by tags
-  async getMusicBrainzTracksByTags(tags, limit = 10) {
+  // Get Last.fm tracks by tags
+  async getLastFmTracksByTags(tags, limit = 10) {
     try {
       const tracks = [];
       for (const tag of tags.slice(0, 3)) {
         // Use first 3 tags
+        const tagName = typeof tag === "string" ? tag : tag.name;
         const response = await fetch(
-          `https://musicbrainz.org/ws/2/recording?tag:${encodeURIComponent(
-            tag.name
-          )}&fmt=json&limit=${Math.ceil(limit / 3)}`,
-          {
-            headers: {
-              "User-Agent":
-                "NextTrack-Apple/1.0 (https://github.com/your-repo)",
-              Accept: "application/json",
-            },
-          }
+          `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&api_key=${
+            this.lastFmApiKey
+          }&tag=${encodeURIComponent(tagName)}&limit=${Math.ceil(
+            limit / 3
+          )}&format=json`
         );
 
         if (response.ok) {
           const data = await response.json();
-          const recordings = data.recordings || [];
+          const trackList = data.tracks?.track || [];
           tracks.push(
-            ...recordings.map((recording) => ({
-              mbid: recording.id,
-              title: recording.title,
-              artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
-              release: recording.releases?.[0]?.title || "Unknown Release",
+            ...trackList.map((track) => ({
+              title: track.name,
+              artist: track.artist?.name || "Unknown Artist",
+              mbid: track.mbid || null,
+              playcount: track.playcount || 0,
+              listeners: track.listeners || 0,
             }))
           );
         }
       }
       return tracks;
     } catch (error) {
-      console.error("Error fetching tracks by tags:", error);
-      return [];
-    }
-  }
-
-  // Get MusicBrainz tracks by release
-  async getMusicBrainzTracksByRelease(releaseTitle, limit = 10) {
-    try {
-      const response = await fetch(
-        `https://musicbrainz.org/ws/2/recording?release:"${encodeURIComponent(
-          releaseTitle
-        )}"&fmt=json&limit=${limit}`,
-        {
-          headers: {
-            "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) return [];
-
-      const data = await response.json();
-      return (data.recordings || []).map((recording) => ({
-        mbid: recording.id,
-        title: recording.title,
-        artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
-        release: recording.releases?.[0]?.title || "Unknown Release",
-      }));
-    } catch (error) {
-      console.error("Error fetching tracks by release:", error);
+      console.error("Error fetching tracks by tags from Last.fm:", error);
       return [];
     }
   }
 }
 
-export default new RecommenderAPI();
+const recommenderAPI = new RecommenderAPI();
+export default recommenderAPI;
