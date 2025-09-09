@@ -10,6 +10,7 @@ function Item({
   metrics,
   onDeleteTrack,
   trackId,
+  hideInfoIcon = false,
 }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -91,7 +92,8 @@ function Item({
               <i className="bi bi-trash-fill"></i>
             </Button>
           ) : (
-            metrics && (
+            metrics &&
+            !hideInfoIcon && (
               <Button
                 variant="link"
                 className="btn"

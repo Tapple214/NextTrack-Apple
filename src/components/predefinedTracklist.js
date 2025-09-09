@@ -36,6 +36,7 @@ export default function PredefinedTracklist({
         </div>
       }
       metrics={track}
+      hideInfoIcon={true}
     />
   );
 
