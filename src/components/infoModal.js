@@ -57,86 +57,101 @@ export default function TrackInfoModal({ track, show, setShow }) {
   const matchingReasons = getMatchingReasons();
 
   return (
-    <>
-      {show && (
-        <div
-          className="w-100 h-100 bg-black d-flex justify-content-center align-items-center bg-opacity-50"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            zIndex: 1000,
-          }}
-        >
-          <div
-            className="p-4 w-75 rounded-3 d-flex flex-column text-white"
-            style={{
-              backgroundColor: "#48426d",
-              maxHeight: "80vh",
-              overflowY: "auto",
-            }}
-          >
-            <div className="mb-3">
-              <h5 className="mb-2">Track Information</h5>
-              <div className="mb-2">
-                <strong>Name:</strong> {track.name}
-              </div>
-              <div className="mb-3">
-                <strong>Artist(s):</strong>{" "}
-                {track.artists?.map((a) => a.name).join(", ")}
-              </div>
-            </div>
-
-            {matchingReasons.length > 0 && (
-              <div className="mb-3">
-                <h6 className="mb-3">Why This Track Matches:</h6>
-                {matchingReasons.map((reason, index) => (
-                  <Card
-                    key={index}
-                    className="mb-2"
-                    style={{ backgroundColor: "#5a5475" }}
-                  >
-                    <Card.Body className="p-3">
-                      <div className="d-flex justify-content-between align-items-center mb-2">
-                        <strong>{reason.title}</strong>
-                        <span className="badge bg-primary">
-                          {formatScore(reason.score)}%
-                        </span>
-                      </div>
-                      <ProgressBar
-                        now={formatScore(reason.score)}
-                        variant="info"
-                        className="mb-2"
-                        style={{ height: "8px" }}
-                      />
-                      <small className="text-muted">{reason.description}</small>
-                    </Card.Body>
-                  </Card>
-                ))}
-              </div>
-            )}
-
-            <div className="d-flex justify-content-end">
-              <Button
-                variant="outline-light"
-                onClick={() => setShow(false)}
-                className="px-4"
-              >
-                Close
-              </Button>
-            </div>
+    <Modal
+      className="rounded-4"
+      show={show}
+      onHide={() => setShow(false)}
+      centered
+      size="lg"
+      style={{ border: "none" }}
+    >
+      <Modal.Body
+        className="text-center pt-4 rounded-4"
+        style={{ border: "none" }}
+      >
+        <div className="mb-3">
+          <h5 className="mb-2">Track Information</h5>
+          <div className="mb-2">
+            <strong>Name:</strong> {track.name}
+          </div>
+          <div className="mb-3">
+            <strong>Artist(s):</strong>{" "}
+            {track.artists?.map((a) => a.name).join(", ")}
           </div>
         </div>
-      )}
-    </>
+
+        {matchingReasons.length > 0 && (
+          <div className="mb-3">
+            <h6 className="mb-3">Why This Track Matches:</h6>
+            {matchingReasons.map((reason, index) => (
+              <Card
+                key={index}
+                className="mb-2"
+                style={{ backgroundColor: "#f8f9fa" }}
+              >
+                <Card.Body className="p-3">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <strong>{reason.title}</strong>
+                    <span
+                      className="badge"
+                      style={{
+                        backgroundColor: "#998edf",
+                        color: "white",
+                      }}
+                    >
+                      {formatScore(reason.score)}%
+                    </span>
+                  </div>
+                  <ProgressBar
+                    now={formatScore(reason.score)}
+                    className="mb-2"
+                    style={{
+                      height: "8px",
+                      backgroundColor: "rgba(153, 142, 223, 0.2)",
+                    }}
+                  >
+                    <ProgressBar
+                      now={formatScore(reason.score)}
+                      style={{
+                        backgroundColor: "#998edf",
+                        transition: "width 0.6s ease",
+                      }}
+                    />
+                  </ProgressBar>
+                  <small className="text-muted">{reason.description}</small>
+                </Card.Body>
+              </Card>
+            ))}
+          </div>
+        )}
+      </Modal.Body>
+      <Button
+        className="m-3"
+        variant="secondary"
+        onClick={() => setShow(false)}
+      >
+        Close
+      </Button>
+    </Modal>
   );
 }
 
 // General Info Modal for section information
 export function InfoModal({ message, show, setShow }) {
   return (
-    <Modal show={show} onHide={() => setShow(false)} centered>
-      <Modal.Body className="text-center pt-4">{message}</Modal.Body>
+    <Modal
+      className="rounded-4"
+      show={show}
+      onHide={() => setShow(false)}
+      centered
+      style={{ border: "none" }}
+    >
+      <Modal.Body
+        className="text-center pt-4 rounded-4"
+        style={{ border: "none" }}
+      >
+        {message}
+      </Modal.Body>
       <Button
         className="m-3"
         variant="secondary"
