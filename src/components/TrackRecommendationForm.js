@@ -36,7 +36,10 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
         // Use MusicBrainz-based recommendations
         [seedTrack, recommendations] = await Promise.all([
           recommenderAPI.getTrackFeatures(trackId),
-          recommenderAPI.findSimilarTracksFromMusicBrainz(musicBrainzMatch),
+          recommenderAPI.findSimilarTracksFromMusicBrainz(
+            musicBrainzMatch,
+            trackId
+          ),
         ]);
       } else {
         // Fallback to original Spotify-based recommendations

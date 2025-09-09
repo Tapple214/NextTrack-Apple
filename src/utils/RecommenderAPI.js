@@ -218,24 +218,54 @@ class RecommenderAPI {
   // Find corresponding Spotify track for MusicBrainz track
   async findSpotifyTrack(mbTrack) {
     try {
-      const query = `track:"${mbTrack.title}" artist:"${mbTrack.artist}"`;
-      const {
-        body: {
-          tracks: { items },
-        },
-      } = await this.spotifyApi.searchTracks(query, {
-        limit: 1,
-        market: "US",
-      });
+      // Try multiple search strategies
+      const searchStrategies = [
+        `track:"${mbTrack.title}" artist:"${mbTrack.artist}"`,
+        `"${mbTrack.title}" "${mbTrack.artist}"`,
+        `track:${mbTrack.title} artist:${mbTrack.artist}`,
+        mbTrack.title + " " + mbTrack.artist,
+      ];
 
-      if (items && items.length > 0) {
-        const track = items[0];
-        return {
-          id: track.id,
-          name: track.name,
-          artists: track.artists.map((a) => ({ name: a.name, id: a.id })),
-        };
+      for (const query of searchStrategies) {
+        console.log(`Searching Spotify for: ${query}`);
+
+        try {
+          const {
+            body: {
+              tracks: { items },
+            },
+          } = await this.spotifyApi.searchTracks(query, {
+            limit: 1,
+            market: "US",
+          });
+
+          console.log(
+            `Spotify search results for "${mbTrack.title}" with query "${query}":`,
+            items
+          );
+
+          if (items && items.length > 0) {
+            const track = items[0];
+            const result = {
+              id: track.id,
+              name: track.name,
+              artists: track.artists.map((a) => ({ name: a.name, id: a.id })),
+            };
+            console.log(`Successfully found Spotify track:`, result);
+            return result;
+          }
+        } catch (searchError) {
+          console.log(
+            `Search failed for query "${query}":`,
+            searchError.message
+          );
+          continue;
+        }
       }
+
+      console.log(
+        `No Spotify tracks found for: ${mbTrack.title} by ${mbTrack.artist} with any search strategy`
+      );
     } catch (error) {
       console.error(`Error finding Spotify track for: ${mbTrack.title}`, error);
     }
@@ -330,7 +360,11 @@ class RecommenderAPI {
   }
 
   // Find similar tracks using MusicBrainz features
-  async findSimilarTracksFromMusicBrainz(mbTrack, limit = 5) {
+  async findSimilarTracksFromMusicBrainz(
+    mbTrack,
+    originalSpotifyTrackId,
+    limit = 5
+  ) {
     try {
       console.log("Finding similar tracks using MusicBrainz data:", mbTrack);
       const similarTracks = [];
@@ -402,9 +436,16 @@ class RecommenderAPI {
       // Convert MusicBrainz tracks to Spotify tracks
       const spotifyTracks = [];
       for (const mbTrack of similarTracks.slice(0, limit)) {
+        console.log(`Converting MusicBrainz track to Spotify:`, mbTrack);
         const spotifyTrack = await this.findSpotifyTrack(mbTrack);
+        console.log(`Spotify track result:`, spotifyTrack);
         if (spotifyTrack) {
           spotifyTracks.push(spotifyTrack);
+        } else {
+          console.log(
+            `Failed to convert MusicBrainz track to Spotify:`,
+            mbTrack
+          );
         }
       }
 
@@ -414,9 +455,17 @@ class RecommenderAPI {
           `Successfully converted ${spotifyTracks.length} MusicBrainz tracks to Spotify format:`,
           spotifyTracks
         );
+        return spotifyTracks;
+      } else {
+        console.log(
+          "No MusicBrainz tracks were successfully converted to Spotify format"
+        );
+        console.log(
+          "Falling back to original Spotify-based recommendations..."
+        );
+        // Fallback to original Spotify recommendations
+        return await this.findSimilarTracks(originalSpotifyTrackId, limit);
       }
-
-      return spotifyTracks;
     } catch (error) {
       console.error("Error finding similar tracks from MusicBrainz:", error);
       return [];
