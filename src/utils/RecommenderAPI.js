@@ -1,26 +1,22 @@
 import SpotifyWebApi from "spotify-web-api-node";
 
 class RecommenderAPI {
-  // Initializes Spotify API and sets up cache
   constructor() {
     this.spotifyApi = new SpotifyWebApi({
       clientId: "c6d965d704db458abac7673400b7b007",
       clientSecret: "a91f9fdde7e94d6cbb2e1ef59badac46",
       redirectUri: "https://localhost:3000",
     });
-    this.lastFmApiKey = "0f26d1bcf6447ee11b20b6134cddbd42"; // Replace with your Last.fm API key
+    this.lastFmApiKey = "0f26d1bcf6447ee11b20b6134cddbd42";
     this.tokenExpirationTime = null;
     this.trackCache = new Map();
   }
 
-  // Gets access token using credentials
   async authenticate() {
-    // Encodes credentials to base64 for authentication
     const credentials = btoa(
       `${this.spotifyApi.getClientId()}:${this.spotifyApi.getClientSecret()}`
     );
 
-    // Sends request to Spotify API to get access token
     const response = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: {
@@ -30,24 +26,20 @@ class RecommenderAPI {
       body: "grant_type=client_credentials",
     });
 
-    // Throws error if authentication fails
     if (!response.ok)
       throw new Error(`Authentication failed: ${response.status}`);
 
-    // Sets access token and expiration time
     const { access_token, expires_in } = await response.json();
     this.spotifyApi.setAccessToken(access_token);
     this.tokenExpirationTime = Date.now() + (expires_in - 300) * 1000;
   }
 
-  // Checks if access token is valid, else fetches new token using authenticate()
   async ensureAuthenticated() {
     if (!this.tokenExpirationTime || Date.now() >= this.tokenExpirationTime) {
       await this.authenticate();
     }
   }
 
-  // Gets track features from Spotify API
   async getTrackFeatures(trackId) {
     if (this.trackCache.has(trackId)) return this.trackCache.get(trackId);
 
@@ -67,7 +59,6 @@ class RecommenderAPI {
     return trackInfo;
   }
 
-  // Finds similar tracks to seed track
   async findSimilarTracks(seedTrackId, limit = 10) {
     await this.ensureAuthenticated();
 
@@ -75,7 +66,6 @@ class RecommenderAPI {
     const seenTrackIds = new Set([seedTrackId]);
     const recommendations = [];
 
-    // Get tracks by the same artist
     for (const artist of seedTrack.artists) {
       const {
         body: {
@@ -95,7 +85,6 @@ class RecommenderAPI {
       }
     }
 
-    // Get recent tracks if needed
     if (recommendations.length < limit) {
       const {
         body: {
@@ -117,7 +106,6 @@ class RecommenderAPI {
     return recommendations.slice(0, limit);
   }
 
-  // Sample tracks/Predefined tracks from Last.fm
   async getSampleTracks(limit = 10) {
     await this.ensureAuthenticated();
     const tracks = [];
@@ -130,20 +118,18 @@ class RecommenderAPI {
         if (tracks.length >= limit) break;
 
         const spotifyTrack = await this.findSpotifyTrack(lastFmTrack);
-
         if (spotifyTrack && !seenTrackIds.has(spotifyTrack.id)) {
           tracks.push(spotifyTrack);
           seenTrackIds.add(spotifyTrack.id);
         }
       }
-    } catch (error) {
+    } catch {
       return this.getFallbackSampleTracks(limit);
     }
 
     return tracks;
   }
 
-  // Get tracks from Last.fm API
   async getLastFmTracks(limit = 10) {
     const tracks = [];
     const tags = ["pop", "rock", "hip-hop", "electronic", "jazz"];
@@ -155,7 +141,6 @@ class RecommenderAPI {
         const url = `https://ws.audioscrobbler.com/2.0/?method=tag.gettoptracks&api_key=${
           this.lastFmApiKey
         }&tag=${encodeURIComponent(tag)}&limit=2&format=json`;
-
         const response = await fetch(url);
         if (!response.ok) continue;
 
@@ -164,18 +149,15 @@ class RecommenderAPI {
 
         for (const track of trackList) {
           if (tracks.length >= limit) break;
-
-          const trackInfo = {
+          tracks.push({
             title: track.name,
             artist: track.artist?.name || "Unknown Artist",
             mbid: track.mbid || null,
             playcount: track.playcount || 0,
             listeners: track.listeners || 0,
-          };
-
-          tracks.push(trackInfo);
+          });
         }
-      } catch (error) {
+      } catch {
         continue;
       }
     }
@@ -183,7 +165,6 @@ class RecommenderAPI {
     return tracks;
   }
 
-  // Find corresponding Spotify track for Last.fm or MusicBrainz track
   async findSpotifyTrack(externalTrack) {
     try {
       const trackTitle = externalTrack.title || externalTrack.name;
@@ -193,7 +174,7 @@ class RecommenderAPI {
         `track:"${trackTitle}" artist:"${trackArtist}"`,
         `"${trackTitle}" "${trackArtist}"`,
         `track:${trackTitle} artist:${trackArtist}`,
-        trackTitle + " " + trackArtist,
+        `${trackTitle} ${trackArtist}`,
       ];
 
       for (const query of searchStrategies) {
@@ -207,7 +188,7 @@ class RecommenderAPI {
             market: "US",
           });
 
-          if (items && items.length > 0) {
+          if (items?.length > 0) {
             const track = items[0];
             return {
               id: track.id,
@@ -215,18 +196,17 @@ class RecommenderAPI {
               artists: track.artists.map((a) => ({ name: a.name, id: a.id })),
             };
           }
-        } catch (searchError) {
+        } catch {
           continue;
         }
       }
-    } catch (error) {
-      // Silent error handling
+    } catch {
+      return null;
     }
 
     return null;
   }
 
-  // Fallback method using original Spotify genre search
   async getFallbackSampleTracks(limit = 10) {
     const genres = ["pop", "rock", "hip-hop", "electronic", "jazz"];
     const tracks = [];
@@ -258,13 +238,12 @@ class RecommenderAPI {
     return tracks;
   }
 
-  // Find Last.fm counterpart for a Spotify track
   async findLastFmCounterpart(spotifyTrackId) {
     try {
       await this.ensureAuthenticated();
 
       const trackData = await this.spotifyApi.getTrack(spotifyTrackId);
-      const trackName = trackData.body.name;
+      const { name: trackName } = trackData.body;
       const artistName = trackData.body.artists[0].name;
 
       const response = await fetch(
@@ -278,25 +257,25 @@ class RecommenderAPI {
       if (!response.ok) return null;
 
       const data = await response.json();
+      const track = data.track;
 
-      if (data.track && data.track.name) {
+      if (track?.name) {
         return {
-          name: data.track.name,
-          artist: data.track.artist?.name || artistName,
-          mbid: data.track.mbid || null,
-          tags: data.track.toptags?.tag || [],
-          playcount: data.track.playcount || 0,
-          listeners: data.track.listeners || 0,
+          name: track.name,
+          artist: track.artist?.name || artistName,
+          mbid: track.mbid || null,
+          tags: track.toptags?.tag || [],
+          playcount: track.playcount || 0,
+          listeners: track.listeners || 0,
         };
       }
 
       return null;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
 
-  // Find similar tracks using Last.fm features with multi-stage content-based filtering
   async findSimilarTracksFromLastFm(
     lastFmTrack,
     originalSpotifyTrackId,
@@ -306,7 +285,6 @@ class RecommenderAPI {
       const similarTracks = [];
       const seenTrackIds = new Set();
 
-      // STAGE 1: Get collaborative filtering results from Last.fm
       if (lastFmTrack.name && lastFmTrack.artist) {
         const similarTracksResponse = await this.getLastFmSimilarTracks(
           lastFmTrack.artist,
@@ -315,44 +293,43 @@ class RecommenderAPI {
         );
 
         for (const track of similarTracksResponse) {
-          if (!seenTrackIds.has(track.mbid || track.title)) {
+          const trackId = track.mbid || track.title;
+          if (!seenTrackIds.has(trackId)) {
             similarTracks.push({
               ...track,
               collaborativeScore: parseFloat(track.match) || 0.5,
               source: "collaborative",
             });
-            seenTrackIds.add(track.mbid || track.title);
+            seenTrackIds.add(trackId);
           }
         }
       }
 
-      // STAGE 2: Get content-based results (tag-based)
-      if (lastFmTrack.tags && lastFmTrack.tags.length > 0) {
+      if (lastFmTrack.tags?.length > 0) {
         const tagTracks = await this.getLastFmTracksByTags(
           lastFmTrack.tags,
           limit * 4
         );
 
         for (const track of tagTracks) {
-          if (!seenTrackIds.has(track.mbid || track.title)) {
+          const trackId = track.mbid || track.title;
+          if (!seenTrackIds.has(trackId)) {
             similarTracks.push({
               ...track,
               collaborativeScore: 0,
               source: "content",
             });
-            seenTrackIds.add(track.mbid || track.title);
+            seenTrackIds.add(trackId);
           }
         }
       }
 
-      // STAGE 3: Content-based filtering and scoring
       const scoredTracks = [];
       for (const track of similarTracks) {
         const contentScore = await this.calculateContentSimilarity(
           lastFmTrack,
           track
         );
-
         const hybridScore = track.collaborativeScore * 0.6 + contentScore * 0.4;
 
         scoredTracks.push({
@@ -366,36 +343,33 @@ class RecommenderAPI {
         });
       }
 
-      // STAGE 4: Filter and re-rank by hybrid score
       const filteredTracks = scoredTracks
         .filter((track) => track.hybridScore > 0.1)
         .sort((a, b) => b.hybridScore - a.hybridScore)
         .slice(0, limit * 3);
 
-      // STAGE 5: Convert to Spotify tracks
       const spotifyTracks = [];
       for (const lastFmTrack of filteredTracks.slice(0, limit)) {
         const spotifyTrack = await this.findSpotifyTrack(lastFmTrack);
         if (spotifyTrack) {
-          spotifyTrack.similarityScore = lastFmTrack.hybridScore;
-          spotifyTrack.contentScore = lastFmTrack.contentScore;
-          spotifyTrack.collaborativeScore = lastFmTrack.collaborativeScore;
-          spotifyTrack.tagSimilarity = lastFmTrack.tagSimilarity;
+          Object.assign(spotifyTrack, {
+            similarityScore: lastFmTrack.hybridScore,
+            contentScore: lastFmTrack.contentScore,
+            collaborativeScore: lastFmTrack.collaborativeScore,
+            tagSimilarity: lastFmTrack.tagSimilarity,
+          });
           spotifyTracks.push(spotifyTrack);
         }
       }
 
-      if (spotifyTracks.length > 0) {
-        return spotifyTracks;
-      } else {
-        return await this.findSimilarTracks(originalSpotifyTrackId, limit);
-      }
-    } catch (error) {
+      return spotifyTracks.length > 0
+        ? spotifyTracks
+        : await this.findSimilarTracks(originalSpotifyTrackId, limit);
+    } catch {
       return [];
     }
   }
 
-  // Get Last.fm similar tracks using track.getSimilar API
   async getLastFmSimilarTracks(artist, track, limit = 10) {
     try {
       const response = await fetch(
@@ -417,37 +391,27 @@ class RecommenderAPI {
         mbid: track.mbid || null,
         match: track.match || 0,
       }));
-    } catch (error) {
+    } catch {
       return [];
     }
   }
 
-  // Calculate tag similarity between two tracks
   calculateTagSimilarity(tags1, tags2) {
-    if (!tags1 || !tags2 || tags1.length === 0 || tags2.length === 0) {
-      return 0;
-    }
+    if (!tags1?.length || !tags2?.length) return 0;
 
     const normalizeTags = (tags) =>
       tags
-        .map((tag) =>
-          typeof tag === "string" ? tag.toLowerCase() : tag.name?.toLowerCase()
-        )
+        .map((tag) => (typeof tag === "string" ? tag : tag.name)?.toLowerCase())
         .filter(Boolean);
 
-    const normalizedTags1 = normalizeTags(tags1);
-    const normalizedTags2 = normalizeTags(tags2);
-
-    const set1 = new Set(normalizedTags1);
-    const set2 = new Set(normalizedTags2);
-
+    const set1 = new Set(normalizeTags(tags1));
+    const set2 = new Set(normalizeTags(tags2));
     const intersection = new Set([...set1].filter((tag) => set2.has(tag)));
     const union = new Set([...set1, ...set2]);
 
     return intersection.size / union.size;
   }
 
-  // Get artist similarity from Last.fm
   async getArtistSimilarity(artist1, artist2) {
     try {
       const response = await fetch(
@@ -460,43 +424,36 @@ class RecommenderAPI {
 
       const data = await response.json();
       const similarArtists = data.similarartists?.artist || [];
-
       const match = similarArtists.find(
         (artist) => artist.name?.toLowerCase() === artist2.toLowerCase()
       );
 
       return match ? parseFloat(match.match) || 0 : 0;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }
 
-  // Calculate content-based similarity score
   async calculateContentSimilarity(originalTrack, candidateTrack) {
     let score = 0;
     let factors = 0;
 
-    // Tag similarity (40% weight)
     if (originalTrack.tags && candidateTrack.tags) {
-      const tagSimilarity = this.calculateTagSimilarity(
-        originalTrack.tags,
-        candidateTrack.tags
-      );
-      score += tagSimilarity * 0.4;
+      score +=
+        this.calculateTagSimilarity(originalTrack.tags, candidateTrack.tags) *
+        0.4;
       factors += 0.4;
     }
 
-    // Artist similarity (30% weight)
     if (originalTrack.artist && candidateTrack.artist) {
-      const artistSimilarity = await this.getArtistSimilarity(
-        originalTrack.artist,
-        candidateTrack.artist
-      );
-      score += artistSimilarity * 0.3;
+      score +=
+        (await this.getArtistSimilarity(
+          originalTrack.artist,
+          candidateTrack.artist
+        )) * 0.3;
       factors += 0.3;
     }
 
-    // Popularity similarity (20% weight)
     if (originalTrack.playcount && candidateTrack.playcount) {
       const originalPopularity = Math.log10(
         parseInt(originalTrack.playcount) + 1
@@ -512,7 +469,6 @@ class RecommenderAPI {
       factors += 0.2;
     }
 
-    // Duration similarity (10% weight)
     if (originalTrack.duration && candidateTrack.duration) {
       const durationDiff = Math.abs(
         parseInt(originalTrack.duration) - parseInt(candidateTrack.duration)
@@ -528,7 +484,6 @@ class RecommenderAPI {
     return factors > 0 ? score / factors : 0;
   }
 
-  // Get Last.fm tracks by tags
   async getLastFmTracksByTags(tags, limit = 10) {
     try {
       const tracks = [];
@@ -557,7 +512,7 @@ class RecommenderAPI {
         }
       }
       return tracks;
-    } catch (error) {
+    } catch {
       return [];
     }
   }
