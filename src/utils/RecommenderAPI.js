@@ -125,9 +125,126 @@ class RecommenderAPI {
     return recommendations.slice(0, limit);
   }
 
-  // Sample tracks/Predefined tracks categorized by genre
+  // Sample tracks/Predefined tracks from MusicBrainz
   async getSampleTracks(limit = 5) {
     await this.ensureAuthenticated();
+    const tracks = [];
+    const seenTrackIds = new Set();
+
+    try {
+      // Get popular tracks from MusicBrainz using different search criteria
+      const musicBrainzTracks = await this.getMusicBrainzTracks(limit * 2);
+
+      // Convert MusicBrainz tracks to Spotify tracks
+      for (const mbTrack of musicBrainzTracks) {
+        if (tracks.length >= limit) break;
+
+        const spotifyTrack = await this.findSpotifyTrack(mbTrack);
+        if (spotifyTrack && !seenTrackIds.has(spotifyTrack.id)) {
+          tracks.push(spotifyTrack);
+          seenTrackIds.add(spotifyTrack.id);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching MusicBrainz tracks:", error);
+      // Fallback to original Spotify genre search if MusicBrainz fails
+      return this.getFallbackSampleTracks(limit);
+    }
+
+    return tracks;
+  }
+
+  // Get tracks from MusicBrainz API
+  async getMusicBrainzTracks(limit = 10) {
+    const tracks = [];
+
+    // Search for popular tracks using different criteria
+    const searchQueries = [
+      "tag:pop",
+      "tag:rock",
+      "tag:hip-hop",
+      "tag:electronic",
+      "tag:jazz",
+    ];
+
+    for (const query of searchQueries) {
+      if (tracks.length >= limit) break;
+
+      try {
+        const response = await fetch(
+          `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(
+            query
+          )}&fmt=json&limit=2`,
+          {
+            headers: {
+              "User-Agent":
+                "NextTrack-Apple/1.0 (https://github.com/your-repo)",
+              Accept: "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          continue;
+        }
+
+        const data = await response.json();
+        const recordings = data.recordings || [];
+
+        for (const recording of recordings) {
+          if (tracks.length >= limit) break;
+
+          // Extract track info from MusicBrainz
+          const trackInfo = {
+            title: recording.title,
+            artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
+            mbid: recording.id,
+          };
+
+          tracks.push(trackInfo);
+        }
+      } catch (error) {
+        console.error(
+          `Error fetching MusicBrainz data for query: ${query}`,
+          error
+        );
+        continue;
+      }
+    }
+
+    return tracks;
+  }
+
+  // Find corresponding Spotify track for MusicBrainz track
+  async findSpotifyTrack(mbTrack) {
+    try {
+      const query = `track:"${mbTrack.title}" artist:"${mbTrack.artist}"`;
+      const {
+        body: {
+          tracks: { items },
+        },
+      } = await this.spotifyApi.searchTracks(query, {
+        limit: 1,
+        market: "US",
+      });
+
+      if (items && items.length > 0) {
+        const track = items[0];
+        return {
+          id: track.id,
+          name: track.name,
+          artists: track.artists.map((a) => ({ name: a.name, id: a.id })),
+        };
+      }
+    } catch (error) {
+      console.error(`Error finding Spotify track for: ${mbTrack.title}`, error);
+    }
+
+    return null;
+  }
+
+  // Fallback method using original Spotify genre search
+  async getFallbackSampleTracks(limit = 5) {
     const genres = ["pop", "rock", "hip-hop", "electronic", "jazz"];
     const tracks = [];
     const seenTrackIds = new Set();
