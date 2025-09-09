@@ -119,7 +119,7 @@ export default function CreateTrackList({ setShow, setInfoMessage }) {
     setShow(true);
     setInfoMessage(
       <>
-        <h4>Create Tracklist</h4>
+        <h4>MakerZone</h4>
         <p>
           Add tracks by pasting Spotify URLs, then download or upload your
           tracklists.

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Card, ProgressBar } from "react-bootstrap";
+import { Button, Card, ProgressBar, Modal } from "react-bootstrap";
 
 export default function TrackInfoModal({ track, show, setShow }) {
   if (!track) return null;
@@ -129,5 +129,21 @@ export default function TrackInfoModal({ track, show, setShow }) {
         </div>
       )}
     </>
+  );
+}
+
+// General Info Modal for section information
+export function InfoModal({ message, show, setShow }) {
+  return (
+    <Modal show={show} onHide={() => setShow(false)} centered>
+      <Modal.Body className="text-center pt-4">{message}</Modal.Body>
+      <Button
+        className="m-3"
+        variant="secondary"
+        onClick={() => setShow(false)}
+      >
+        Close
+      </Button>
+    </Modal>
   );
 }

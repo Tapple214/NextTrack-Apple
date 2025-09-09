@@ -5,7 +5,7 @@ import ToolsArea from "./components/ToolsArea.js";
 import ToolsToggle from "./components/ToolsToggle.js";
 import RecommendationResults from "./components/RecommendationResults.js";
 import CreateTrackList from "./components/createTrackList.js";
-import InfoModal from "./components/infoModal.js";
+import TrackInfoModal, { InfoModal } from "./components/infoModal.js";
 import PredefinedTracklist from "./components/predefinedTracklist.js";
 
 function App() {
