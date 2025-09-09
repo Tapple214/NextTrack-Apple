@@ -58,6 +58,11 @@ code {
   border: none;
 }
 
+.btn:disabled {
+  background-color: #998edf;
+  color: rgba(255, 255, 255, 0.905);
+}
+
 .btn:hover {
   background-color: rgba(255, 255, 255, 0.905);
   color: #312c51;

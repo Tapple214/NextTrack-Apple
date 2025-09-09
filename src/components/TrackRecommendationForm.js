@@ -68,7 +68,7 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
         </Form.Group>
 
         {/* Submit button */}
-        <Button type="submit" disabled={loading} className="w-100 py-3 btn">
+        <Button type="submit" disabled={loading} className="w-100 py-3">
           {loading ? "Loading..." : "Get Recommendations"}
         </Button>
       </Form>

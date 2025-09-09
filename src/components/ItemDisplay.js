@@ -115,7 +115,6 @@ function Item({
           onClose={() => setShowToast(false)}
           delay={3000}
           autohide
-          bg="success"
         >
           <Toast.Header>
             <strong className="me-auto">Notification</strong>
