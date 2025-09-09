@@ -1,11 +1,6 @@
 import React, { useState } from "react";
-import {
-  Button,
-  Popover,
-  OverlayTrigger,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Button, Toast, ToastContainer } from "react-bootstrap";
+import TrackInfoModal from "./infoModal.js";
 
 function Item({
   action,
@@ -18,6 +13,7 @@ function Item({
 }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [showInfoModal, setShowInfoModal] = useState(false);
 
   const showNotification = (message) => {
     setToastMessage(message);
@@ -50,20 +46,9 @@ function Item({
     }
   };
 
-  const metricsPopover = (
-    <Popover id="metrics-popover" className="p-3">
-      <Popover.Body>
-        <div className="metrics-grid">
-          <strong>Track Details:</strong>
-          <br />
-          {metrics?.name && <span>Name: {metrics.name}</span>}
-          {metrics?.artists && (
-            <span>Artist: {metrics.artists.map((a) => a.name).join(", ")}</span>
-          )}
-        </div>
-      </Popover.Body>
-    </Popover>
-  );
+  const handleShowInfo = () => {
+    setShowInfoModal(true);
+  };
 
   return (
     <>
@@ -107,20 +92,15 @@ function Item({
             </Button>
           ) : (
             metrics && (
-              <OverlayTrigger
-                trigger={["hover", "focus"]}
-                placement="top"
-                overlay={metricsPopover}
+              <Button
+                variant="link"
+                className="btn"
+                id="icon-btn"
+                onClick={handleShowInfo}
+                title="Track characteristics and matching reasons"
               >
-                <Button
-                  variant="link"
-                  className="btn"
-                  id="icon-btn"
-                  title="Track characteristics"
-                >
-                  <i className="bi bi-info-circle-fill"></i>
-                </Button>
-              </OverlayTrigger>
+                <i className="bi bi-info-circle-fill"></i>
+              </Button>
             )
           )}
         </div>
@@ -141,6 +121,13 @@ function Item({
           <Toast.Body>{toastMessage}</Toast.Body>
         </Toast>
       </ToastContainer>
+
+      {/* Track Info Modal */}
+      <TrackInfoModal
+        track={metrics}
+        show={showInfoModal}
+        setShow={setShowInfoModal}
+      />
     </>
   );
 }
