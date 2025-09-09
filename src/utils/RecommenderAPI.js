@@ -274,6 +274,57 @@ class RecommenderAPI {
 
     return tracks;
   }
+
+  // Find MusicBrainz counterpart for a Spotify track
+  async findMusicBrainzCounterpart(spotifyTrackId) {
+    try {
+      await this.ensureAuthenticated();
+
+      // Get track details from Spotify
+      const trackData = await this.spotifyApi.getTrack(spotifyTrackId);
+      const trackName = trackData.body.name;
+      const artistName = trackData.body.artists[0].name;
+
+      // Search MusicBrainz for matching recording
+      const query = `recording:"${trackName}" AND artist:"${artistName}"`;
+      const response = await fetch(
+        `https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(
+          query
+        )}&fmt=json&limit=1`,
+        {
+          headers: {
+            "User-Agent": "NextTrack-Apple/1.0 (https://github.com/your-repo)",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.log("No MusicBrainz match found");
+        return null;
+      }
+
+      const data = await response.json();
+      const recordings = data.recordings || [];
+
+      if (recordings.length > 0) {
+        const recording = recordings[0];
+        console.log("match");
+        return {
+          mbid: recording.id,
+          title: recording.title,
+          artist: recording["artist-credit"]?.[0]?.name || "Unknown Artist",
+          release: recording.releases?.[0]?.title || "Unknown Release",
+        };
+      } else {
+        console.log("No MusicBrainz match found");
+        return null;
+      }
+    } catch (error) {
+      console.error("Error finding MusicBrainz counterpart:", error);
+      return null;
+    }
+  }
 }
 
 export default new RecommenderAPI();

@@ -24,6 +24,11 @@ const TrackRecommendationForm = ({ handleRecommendations }) => {
       // Checks if track URL is valid
       const trackId = extractTrackId(trackUrl);
 
+      // Find MusicBrainz counterpart and log "match" if found
+      const musicBrainzMatch = await recommenderAPI.findMusicBrainzCounterpart(
+        trackId
+      );
+
       // TODO: ensure that 2nd iteration of rec uses features rather than just same artist
       // Use util to get track features and recommendations
       // Uses features from seed track to find similar tracks (results in "recommendations")
