@@ -66,7 +66,6 @@ class RecommenderAPI {
       decade = "",
       yearRange = { min: "", max: "" },
       popularity = "mixed",
-      artistSimilarityWeight = 0.6,
     } = searchParams;
 
     await this.ensureAuthenticated();
@@ -484,7 +483,6 @@ class RecommenderAPI {
       limit = 10,
       genres = [],
       decade = "",
-      yearRange = { min: "", max: "" },
       popularity = "mixed",
       artistSimilarityWeight = 0.6,
     } = searchParams;
